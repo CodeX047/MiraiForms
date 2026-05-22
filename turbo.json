@@ -1,5 +1,5 @@
 {
-  "$schema": "https://turborepo.dev/schema.json",
+  "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
   "tasks": {
     "build": {
@@ -16,6 +16,8 @@
     "dev": {
       "cache": false,
       "persistent": true
-    }
+    },
+    "db:generate": {},
+    "db:migrate": {}
   }
 }
