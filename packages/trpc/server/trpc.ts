@@ -11,3 +11,19 @@ export const tRPCContext = initTRPC
 export const router = tRPCContext.router;
 
 export const publicProcedure = tRPCContext.procedure;
+
+export const authedProcedure = tRPCContext.procedure.use(async ({ ctx, next }) => {
+  if (!ctx.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Not authenticated — valid Clerk session required",
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      userId: ctx.userId,
+    },
+  });
+});
