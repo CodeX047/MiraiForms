@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
+import { CreateFormModal } from "~/components/create-form-modal";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -24,11 +25,14 @@ export default async function DashboardPage() {
 
       {/* Dashboard Content */}
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="mt-2 text-muted-foreground">
-            Manage your forms, view analytics, and create new experiences.
-          </p>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+            <p className="mt-2 text-muted-foreground">
+              Manage your forms, view analytics, and create new experiences.
+            </p>
+          </div>
+          <CreateFormModal />
         </div>
 
         {/* Quick Actions Grid */}

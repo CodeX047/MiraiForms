@@ -1,5 +1,4 @@
 import { pgTable, uuid, varchar, timestamp } from "drizzle-orm/pg-core";
-import { usersTable } from "./user";
 
 export const formsTable = pgTable("forms", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -8,9 +7,7 @@ export const formsTable = pgTable("forms", {
 
   description: varchar("description", { length: 300 }),
 
-  createdBy: uuid("created_by")
-    .references(() => usersTable.id)
-    .notNull(),
+  createdBy: varchar("created_by", { length: 255 }).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 
@@ -19,4 +16,3 @@ export const formsTable = pgTable("forms", {
     .defaultNow()
     .notNull(),
 });
-
