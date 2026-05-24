@@ -24,3 +24,13 @@ export const signInUserWithEmailAndPasswordInput = z.object({
 export type SignInUserWithEmailAndPasswordInputType = z.infer<
   typeof signInUserWithEmailAndPasswordInput
 >;
+
+export const syncClerkUserInput = z.object({
+  id: z.string().min(1).describe("Clerk ID of the user"),
+  fullName: z.string().min(1).describe("Full name of the user"),
+  email: z.string().email().describe("Email address of the user"),
+  profileImageUrl: z.string().optional().nullable().describe("Profile image URL of the user"),
+});
+
+export type SyncClerkUserInputType = z.infer<typeof syncClerkUserInput>;
+

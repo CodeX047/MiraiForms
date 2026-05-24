@@ -1,6 +1,9 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { verifyToken } from "@clerk/backend";
+import { verifyToken, createClerkClient } from "@clerk/backend";
 import { createCookieFactory, getCookieFactory, clearCookieFactory } from "./utils/cookie";
+import { db, eq } from "@repo/database";
+import { usersTable } from "@repo/database/models/user";
+import { userService } from "./services";
 
 export interface TRPCContext {
   createCookie: ReturnType<typeof createCookieFactory>;
@@ -33,6 +36,38 @@ export async function createContext({
       }
     } catch {
       // Token invalid or expired — leave userId null
+    }
+  }
+
+  if (userId) {
+    try {
+      const existingUser = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+      
+      if (!existingUser || existingUser.length === 0) {
+        const secretKey = process.env.CLERK_SECRET_KEY;
+        if (secretKey) {
+          const clerk = createClerkClient({ secretKey });
+          const clerkUser = await clerk.users.getUser(userId);
+          
+          const email = clerkUser.emailAddresses[0]?.emailAddress;
+          const fullName = [clerkUser.firstName, clerkUser.lastName]
+            .filter(Boolean)
+            .join(" ")
+            .trim() || "Clerk User";
+          const profileImageUrl = clerkUser.imageUrl;
+
+          if (email) {
+            await userService.syncClerkUser({
+              id: userId,
+              email,
+              fullName,
+              profileImageUrl: profileImageUrl || null,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error auto-syncing Clerk user in tRPC context:", error);
     }
   }
 

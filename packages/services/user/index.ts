@@ -7,6 +7,8 @@ import {
   createUserwithEmailAndPasswordInput,
   generateUserTokenPayload,
   signInUserWithEmailAndPasswordInput,
+  syncClerkUserInput,
+  type SyncClerkUserInputType,
 } from "./model";
 import { db, eq } from "@repo/database";
 import { usersTable } from "@repo/database/models/user";
@@ -117,6 +119,44 @@ class UserService {
     const userInfo = await this.getUserInfoById(id);
 
     return { ...userInfo };
+  }
+
+  public async syncClerkUser(payload: SyncClerkUserInputType) {
+    const { id, fullName, email, profileImageUrl } = await syncClerkUserInput.parseAsync(payload);
+
+    const existing = await db.select().from(usersTable).where(eq(usersTable.id, id));
+
+    if (!existing || existing.length === 0) {
+      const insertResult = await db
+        .insert(usersTable)
+        .values({
+          id,
+          fullName,
+          email,
+          profileImageUrl: profileImageUrl || null,
+        })
+        .returning({ id: usersTable.id });
+
+      if (!insertResult || insertResult.length === 0) {
+        throw new Error("Failed to insert synced Clerk user");
+      }
+      return { id: insertResult[0]!.id, created: true };
+    } else {
+      const updateResult = await db
+        .update(usersTable)
+        .set({
+          fullName,
+          email,
+          profileImageUrl: profileImageUrl || null,
+        })
+        .where(eq(usersTable.id, id))
+        .returning({ id: usersTable.id });
+
+      if (!updateResult || updateResult.length === 0) {
+        throw new Error("Failed to update synced Clerk user");
+      }
+      return { id: updateResult[0]!.id, created: false };
+    }
   }
 }
 
