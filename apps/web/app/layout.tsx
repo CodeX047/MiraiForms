@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { GlobalProviders } from "~/providers/global";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
 });
 
 export const metadata: Metadata = {
@@ -27,8 +33,8 @@ export default function RootLayout({
     <ClerkProvider
       afterSignOutUrl="/"
     >
-      <html lang="en" suppressHydrationWarning>
-        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <html lang="en" suppressHydrationWarning className="dark">
+        <body className={`${inter.variable} ${spaceGrotesk.variable} ${jetBrainsMono.variable} dark antialiased`}>
           <GlobalProviders>{children}</GlobalProviders>
         </body>
       </html>

@@ -1,9 +1,33 @@
-export default async function Home() {
+import {
+  HeroSection,
+  SocialProofSection,
+  ProductShowcaseSection,
+  FeaturesSection,
+  TemplatesShowcase,
+  AnalyticsShowcase,
+  HowItWorksSection,
+  WhyMiraiFormsSection,
+  PricingSection,
+  FaqSection,
+  FinalCtaSection,
+  Footer,
+} from "~/components/landing";
+
+export default function Home() {
   return (
-    <main className="min-h-screen min-w-screen flex justify-center items-center">
-      <div>
-        <h2 className="text-2xl font-bold">Welcome To Mirai Forms</h2>
-      </div>
+    <main className="min-h-screen bg-background">
+      <HeroSection />
+      <SocialProofSection />
+      <ProductShowcaseSection />
+      <FeaturesSection />
+      <TemplatesShowcase />
+      <AnalyticsShowcase />
+      <HowItWorksSection />
+      <WhyMiraiFormsSection />
+      <PricingSection />
+      <FaqSection />
+      <FinalCtaSection />
+      <Footer />
     </main>
   );
 }
