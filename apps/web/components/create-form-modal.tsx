@@ -66,8 +66,8 @@ export function CreateFormModal() {
       setOpen(false);
       resetForm();
 
-      // Navigate to the newly created form editor
-      router.push(`/forms/${result.id}`);
+      // Navigate to the all forms page
+      router.push("/dashboard/forms");
     } catch (err: any) {
       console.error("Create form error:", err);
       const message =

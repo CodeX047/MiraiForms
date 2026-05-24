@@ -49,7 +49,7 @@ export default async function DashboardPage() {
           </a>
 
           <a
-            href="/forms"
+            href="/dashboard/forms"
             className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-md"
           >
             <div className="mb-3 text-2xl">📋</div>
