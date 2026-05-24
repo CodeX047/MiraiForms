@@ -124,24 +124,10 @@ class UserService {
   public async syncClerkUser(payload: SyncClerkUserInputType) {
     const { id, fullName, email, profileImageUrl } = await syncClerkUserInput.parseAsync(payload);
 
-    const existing = await db.select().from(usersTable).where(eq(usersTable.id, id));
+    // 1. Try finding by Clerk ID
+    const existingById = await db.select().from(usersTable).where(eq(usersTable.id, id));
 
-    if (!existing || existing.length === 0) {
-      const insertResult = await db
-        .insert(usersTable)
-        .values({
-          id,
-          fullName,
-          email,
-          profileImageUrl: profileImageUrl || null,
-        })
-        .returning({ id: usersTable.id });
-
-      if (!insertResult || insertResult.length === 0) {
-        throw new Error("Failed to insert synced Clerk user");
-      }
-      return { id: insertResult[0]!.id, created: true };
-    } else {
+    if (existingById && existingById.length > 0) {
       const updateResult = await db
         .update(usersTable)
         .set({
@@ -153,10 +139,47 @@ class UserService {
         .returning({ id: usersTable.id });
 
       if (!updateResult || updateResult.length === 0) {
-        throw new Error("Failed to update synced Clerk user");
+        throw new Error("Failed to update synced Clerk user by ID");
       }
       return { id: updateResult[0]!.id, created: false };
     }
+
+    // 2. Not found by Clerk ID. Check if a record exists with the same email
+    const existingByEmail = await db.select().from(usersTable).where(eq(usersTable.email, email));
+
+    if (existingByEmail && existingByEmail.length > 0) {
+      // Exists by email: Update the ID to the Clerk ID, and update details (merging account)
+      const updateResult = await db
+        .update(usersTable)
+        .set({
+          id, // Update primary key to Clerk ID
+          fullName,
+          profileImageUrl: profileImageUrl || null,
+        })
+        .where(eq(usersTable.email, email))
+        .returning({ id: usersTable.id });
+
+      if (!updateResult || updateResult.length === 0) {
+        throw new Error("Failed to update synced Clerk user ID by email");
+      }
+      return { id: updateResult[0]!.id, created: false };
+    }
+
+    // 3. Brand new user (neither ID nor email exists): Insert
+    const insertResult = await db
+      .insert(usersTable)
+      .values({
+        id,
+        fullName,
+        email,
+        profileImageUrl: profileImageUrl || null,
+      })
+      .returning({ id: usersTable.id });
+
+    if (!insertResult || insertResult.length === 0) {
+      throw new Error("Failed to insert synced Clerk user");
+    }
+    return { id: insertResult[0]!.id, created: true };
   }
 }
 
