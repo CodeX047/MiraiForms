@@ -93,7 +93,7 @@ export function CreateFormModal() {
       <Button
         id="create-form-button"
         onClick={() => setOpen(true)}
-        className="gap-2"
+        className="gap-2 bg-[#080808] border border-[#E94B35] text-white hover:bg-[#E94B35] transition-all cursor-pointer font-bold mono text-xs uppercase tracking-wider rounded px-5 py-2.5 shadow-[0_0_20px_rgba(233,75,53,0.15)] hover:shadow-[0_0_30px_rgba(233,75,53,0.3)]"
         size="default"
       >
         <Plus className="h-4 w-4" />
@@ -102,19 +102,22 @@ export function CreateFormModal() {
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#0D0D0D] border border-white/10 rounded shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Create a new form</DialogTitle>
-            <DialogDescription>
-              Give your form a title and an optional description. You can always
-              change these later.
+            <DialogTitle className="heading-brutalist text-white text-2xl tracking-wide uppercase">
+              Create a new form
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#6E6E6E] mono">
+              / GIVE YOUR EXPERIENCE A TITLE AND OPTIONAL SPECIFICATION DESCRIPTION.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-1">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-2">
             {/* Title Field */}
             <Field data-invalid={!!fieldErrors.title || undefined}>
-              <FieldLabel htmlFor="form-title">Title</FieldLabel>
+              <FieldLabel htmlFor="form-title" className="text-white text-xs font-semibold tracking-wide uppercase mono">
+                Title
+              </FieldLabel>
               <Input
                 id="form-title"
                 placeholder="e.g. Customer Feedback Survey"
@@ -129,14 +132,15 @@ export function CreateFormModal() {
                 }}
                 aria-invalid={!!fieldErrors.title}
                 autoFocus
+                className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2"
               />
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mt-1">
                 {fieldErrors.title ? (
-                  <FieldError>{fieldErrors.title}</FieldError>
+                  <FieldError className="text-xs text-[#FF3B30] mono">{fieldErrors.title}</FieldError>
                 ) : (
-                  <FieldDescription>Max 55 characters</FieldDescription>
+                  <FieldDescription className="text-[10px] text-[#6E6E6E] mono">Max 55 characters</FieldDescription>
                 )}
-                <span className="text-xs tabular-nums text-muted-foreground">
+                <span className="text-[10px] tabular-nums text-[#6E6E6E] mono">
                   {title.length}/55
                 </span>
               </div>
@@ -144,9 +148,9 @@ export function CreateFormModal() {
 
             {/* Description Field */}
             <Field data-invalid={!!fieldErrors.description || undefined}>
-              <FieldLabel htmlFor="form-description">
+              <FieldLabel htmlFor="form-description" className="text-white text-xs font-semibold tracking-wide uppercase mono">
                 Description{" "}
-                <span className="text-muted-foreground font-normal">
+                <span className="text-[#6E6E6E] font-normal lowercase italic">
                   (optional)
                 </span>
               </FieldLabel>
@@ -167,39 +171,45 @@ export function CreateFormModal() {
                   }
                 }}
                 aria-invalid={!!fieldErrors.description}
+                className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2"
               />
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mt-1">
                 {fieldErrors.description ? (
-                  <FieldError>{fieldErrors.description}</FieldError>
+                  <FieldError className="text-xs text-[#FF3B30] mono">{fieldErrors.description}</FieldError>
                 ) : (
-                  <FieldDescription>Max 300 characters</FieldDescription>
+                  <FieldDescription className="text-[10px] text-[#6E6E6E] mono">Max 300 characters</FieldDescription>
                 )}
-                <span className="text-xs tabular-nums text-muted-foreground">
+                <span className="text-[10px] tabular-nums text-[#6E6E6E] mono">
                   {description.length}/300
                 </span>
               </div>
             </Field>
 
             {/* Actions */}
-            <DialogFooter className="pt-2">
+            <DialogFooter className="pt-2 gap-2 flex justify-end">
               <Button
                 type="button"
                 variant="outline"
                 disabled={isPending}
                 onClick={() => handleOpenChange(false)}
+                className="border-white/10 text-white hover:bg-white/5 hover:text-white text-xs uppercase mono rounded cursor-pointer h-10 px-4"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending} className="gap-2">
+              <Button 
+                type="submit" 
+                disabled={isPending} 
+                className="bg-[#E94B35] text-white hover:bg-[#FF3B30] transition-all text-xs uppercase mono rounded cursor-pointer h-10 px-4"
+              >
                 {isPending ? (
                   <>
-                    <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1.5" />
                     Creating...
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
-                    Create Form
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Create
                   </>
                 )}
               </Button>
