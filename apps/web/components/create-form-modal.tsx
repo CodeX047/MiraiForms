@@ -70,8 +70,7 @@ export function CreateFormModal() {
       router.push("/dashboard/forms");
     } catch (err: any) {
       console.error("Create form error:", err);
-      const message =
-        err?.message || "Something went wrong while creating the form.";
+      const message = err?.message || "Something went wrong while creating the form.";
       toast.error("Failed to create form", { description: message });
     }
   };
@@ -107,15 +106,15 @@ export function CreateFormModal() {
             <DialogTitle className="heading-brutalist text-white text-2xl tracking-wide uppercase">
               Create a new form
             </DialogTitle>
-            <DialogDescription className="text-xs text-[#6E6E6E] mono">
-              / GIVE YOUR EXPERIENCE A TITLE AND OPTIONAL SPECIFICATION DESCRIPTION.
-            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-2">
             {/* Title Field */}
             <Field data-invalid={!!fieldErrors.title || undefined}>
-              <FieldLabel htmlFor="form-title" className="text-white text-xs font-semibold tracking-wide uppercase mono">
+              <FieldLabel
+                htmlFor="form-title"
+                className="text-white text-xs font-semibold tracking-wide uppercase mono"
+              >
                 Title
               </FieldLabel>
               <Input
@@ -136,9 +135,13 @@ export function CreateFormModal() {
               />
               <div className="flex items-center justify-between mt-1">
                 {fieldErrors.title ? (
-                  <FieldError className="text-xs text-[#FF3B30] mono">{fieldErrors.title}</FieldError>
+                  <FieldError className="text-xs text-[#FF3B30] mono">
+                    {fieldErrors.title}
+                  </FieldError>
                 ) : (
-                  <FieldDescription className="text-[10px] text-[#6E6E6E] mono">Max 55 characters</FieldDescription>
+                  <FieldDescription className="text-[10px] text-[#6E6E6E] mono">
+                    Max 55 characters
+                  </FieldDescription>
                 )}
                 <span className="text-[10px] tabular-nums text-[#6E6E6E] mono">
                   {title.length}/55
@@ -148,11 +151,12 @@ export function CreateFormModal() {
 
             {/* Description Field */}
             <Field data-invalid={!!fieldErrors.description || undefined}>
-              <FieldLabel htmlFor="form-description" className="text-white text-xs font-semibold tracking-wide uppercase mono">
+              <FieldLabel
+                htmlFor="form-description"
+                className="text-white text-xs font-semibold tracking-wide uppercase mono"
+              >
                 Description{" "}
-                <span className="text-[#6E6E6E] font-normal lowercase italic">
-                  (optional)
-                </span>
+                <span className="text-[#6E6E6E] font-normal lowercase italic">(optional)</span>
               </FieldLabel>
               <Textarea
                 id="form-description"
@@ -175,9 +179,13 @@ export function CreateFormModal() {
               />
               <div className="flex items-center justify-between mt-1">
                 {fieldErrors.description ? (
-                  <FieldError className="text-xs text-[#FF3B30] mono">{fieldErrors.description}</FieldError>
+                  <FieldError className="text-xs text-[#FF3B30] mono">
+                    {fieldErrors.description}
+                  </FieldError>
                 ) : (
-                  <FieldDescription className="text-[10px] text-[#6E6E6E] mono">Max 300 characters</FieldDescription>
+                  <FieldDescription className="text-[10px] text-[#6E6E6E] mono">
+                    Max 300 characters
+                  </FieldDescription>
                 )}
                 <span className="text-[10px] tabular-nums text-[#6E6E6E] mono">
                   {description.length}/300
@@ -196,9 +204,9 @@ export function CreateFormModal() {
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={isPending} 
+              <Button
+                type="submit"
+                disabled={isPending}
                 className="bg-[#E94B35] text-white hover:bg-[#FF3B30] transition-all text-xs uppercase mono rounded cursor-pointer h-10 px-4"
               >
                 {isPending ? (
