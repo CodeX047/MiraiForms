@@ -5,33 +5,39 @@ import { Zap, Shield, Cpu, Layers, MousePointer2, Workflow } from "lucide-react"
 
 const features = [
   {
-    title: "AI-Powered Generation",
-    description: "Describe your ideal form in plain English, and our AI builds it instantly with perfect logic and validation.",
+    title: "Dynamic Form Builder",
+    description:
+      "Create modern interactive forms with an intuitive builder designed for speed, flexibility, and a seamless creation experience.",
     icon: Cpu,
   },
   {
-    title: "Real-time Collaboration",
-    description: "Work with your team in real-time. See cursors, leave comments, and build faster together.",
+    title: "Customizable Field Types",
+    description:
+      "Build forms using multiple field types including text, email, select, checkbox, rating, date, and more with flexible validation support.",
     icon: Zap,
   },
   {
-    title: "Advanced Logic Branching",
-    description: "Create complex conditional flows without writing a single line of code. Visual logic builder included.",
+    title: "Smart Form Analytics",
+    description:
+      "Track submissions, monitor engagement, and gain valuable insights through clean and powerful response analytics dashboards.",
     icon: Workflow,
   },
   {
-    title: "Enterprise Grade Security",
-    description: "Bank-level encryption, SOC2 compliance, and granular access controls for your sensitive data.",
+    title: "Secure Authentication",
+    description:
+      "Protect creator dashboards and workflows with secure authentication powered by Clerk and custom premium auth experiences.",
     icon: Shield,
   },
   {
-    title: "Seamless Integrations",
-    description: "Connect your forms to 500+ apps natively. Push data to your CRM, database, or analytics stack.",
+    title: "Instant Form Sharing",
+    description:
+      "Publish forms instantly and share public or unlisted links with anyone without requiring users to create an account.",
     icon: Layers,
   },
   {
-    title: "Intuitive Drag & Drop",
-    description: "A buttery-smooth visual editor that feels like magic. No clunky interfaces, just pure creation flow.",
+    title: "Smooth Drag & Drop Experience",
+    description:
+      "Reorder and organize form fields effortlessly with a responsive drag-and-drop experience built for modern workflows.",
     icon: MousePointer2,
   },
 ];
@@ -65,7 +71,7 @@ export function FeaturesSection() {
       <div className="max-w-7xl mx-auto">
         {/* Section Label */}
         <div className="mono text-muted-foreground text-[10px] uppercase tracking-widest mb-4">
-          / 003 / CAPABILITIES
+          / 002 / CAPABILITIES
         </div>
 
         {/* Heading */}
@@ -76,7 +82,8 @@ export function FeaturesSection() {
         </h2>
 
         <p className="text-muted-foreground max-w-2xl mb-16 leading-relaxed">
-          A comprehensive suite of tools designed for modern teams who demand power without complexity.
+          A comprehensive suite of tools designed for modern teams who demand power without
+          complexity.
         </p>
 
         {/* Features Grid */}
@@ -104,9 +111,7 @@ export function FeaturesSection() {
 
                 {/* Content */}
                 <div className="relative z-10">
-                  <h3 className="text-white font-semibold mb-3 text-xl">
-                    {feature.title}
-                  </h3>
+                  <h3 className="text-white font-semibold mb-3 text-xl">{feature.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {feature.description}
                   </p>

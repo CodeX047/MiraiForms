@@ -3,16 +3,45 @@
 import { motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 
+const comparisonFeatures = [
+  {
+    feature: "Form Creation",
+    old: "Traditional form builders",
+    new: "Modern interactive experience",
+  },
+  {
+    feature: "Field Customization",
+    old: "Limited field options",
+    new: "Flexible dynamic field types",
+  },
+  {
+    feature: "Publishing",
+    old: "Complicated deployment flows",
+    new: "Instant public sharing",
+  },
+  {
+    feature: "Response Analytics",
+    old: "Basic submission tracking",
+    new: "Modern analytics dashboard",
+  },
+  {
+    feature: "User Experience",
+    old: "Clunky outdated interfaces",
+    new: "Smooth futuristic design",
+  },
+];
+
 export function WhyMiraiFormsSection() {
   return (
     <section className="py-24 bg-card/30 relative">
-      <div className="container px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
             Why choose MiraiForms?
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Traditional form builders are stuck in the past. Here is how we compare to the legacy tools you are probably using right now.
+            Traditional form builders are stuck in the past. Here is how we compare to the legacy
+            tools you are probably using right now.
           </p>
         </div>
 
@@ -22,15 +51,9 @@ export function WhyMiraiFormsSection() {
             <div className="font-bold text-center">Traditional Tools</div>
             <div className="font-bold text-center text-primary">MiraiForms</div>
           </div>
-          
-          {[
-            { feature: "Form Creation", old: "Manual drag & drop", new: "AI-generated instantly" },
-            { feature: "Logic Configuration", old: "Complex rule builders", new: "Natural language instructions" },
-            { feature: "Design & Styling", old: "Basic themes", new: "Advanced design system control" },
-            { feature: "Data Analysis", old: "CSV exports", new: "Predictive AI insights" },
-            { feature: "Collaboration", old: "Single user edits", new: "Real-time multiplayer" },
-          ].map((row, i) => (
-            <motion.div 
+
+          {comparisonFeatures.map((row, i) => (
+            <motion.div
               key={i}
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}

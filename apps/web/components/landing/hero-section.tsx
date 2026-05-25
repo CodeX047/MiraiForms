@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -29,8 +30,8 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-primary-foreground/70 text-sm md:text-base max-w-md mb-8 font-light"
           >
-            A futuristic SaaS form builder platform that lets creators build beautiful
-            interactive forms, publish instantly, and collect responses with powerful analytics.
+            Create beautiful interactive forms with a modern experience designed for creators,
+            startups, and growing teams.
           </motion.p>
 
           <motion.div
@@ -39,10 +40,18 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-wrap gap-3"
           >
-            <Button size="lg" className="rounded-full px-6 py-3 bg-[#080808] text-white hover:bg-[#111111] transition-all hover:shadow-xl mono text-sm h-auto">
-              Start Building Free <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-            <Button size="lg" className="rounded-full px-6 py-3 border border-primary-foreground/20 text-primary-foreground bg-transparent hover:border-primary-foreground/40 hover:bg-transparent transition-all mono text-sm h-auto">
+            <Link href="/signup">
+              <Button
+                size="lg"
+                className="rounded-full px-6 py-3 bg-[#080808] text-white hover:bg-[#111111] transition-all hover:shadow-xl mono text-sm h-auto"
+              >
+                Start Building Free <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
+            <Button
+              size="lg"
+              className="rounded-full px-6 py-3 border border-primary-foreground/20 text-primary-foreground bg-transparent hover:border-primary-foreground/40 hover:bg-transparent transition-all mono text-sm h-auto"
+            >
               View Demo
             </Button>
           </motion.div>

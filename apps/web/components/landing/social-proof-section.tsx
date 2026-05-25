@@ -12,14 +12,14 @@ const metrics = [
 export function SocialProofSection() {
   return (
     <section className="py-20 border-b border-border/40 bg-background/50 relative overflow-hidden">
-      <div className="container px-4 md:px-6 relative z-10">
+      <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="text-center mb-12">
           <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-4">
-            Trusted by innovative teams worldwide
+            Trusted by innovative teams
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale">
             {/* Logos Placeholder */}
-            {["Acme Corp", "Globalia", "Stark Ind", "Wayne Ent", "Initech"].map((logo) => (
+            {["ChaiCode", "DockerKing", "YNTP", "BigBoss"].map((logo) => (
               <div key={logo} className="text-xl md:text-2xl font-bold font-mono tracking-tighter">
                 {logo}
               </div>

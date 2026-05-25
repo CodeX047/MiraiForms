@@ -1,123 +1,241 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
-import { Button } from "~/components/ui/button";
-
-const plans = [
-  {
-    name: "Starter",
-    description: "Perfect for indie hackers and small projects.",
-    monthlyPrice: 19,
-    annualPrice: 15,
-    features: ["Up to 5 forms", "1,000 responses/mo", "Basic AI generation", "Standard support"],
-    recommended: false,
-  },
-  {
-    name: "Pro",
-    description: "For scaling teams that need advanced capabilities.",
-    monthlyPrice: 49,
-    annualPrice: 39,
-    features: ["Unlimited forms", "10,000 responses/mo", "Advanced AI logic", "Custom domains", "Priority support"],
-    recommended: true,
-  },
-  {
-    name: "Enterprise",
-    description: "Custom limits and dedicated support for large orgs.",
-    monthlyPrice: 199,
-    annualPrice: 159,
-    features: ["Unlimited everything", "SSO & SAML", "Predictive Analytics", "Dedicated success manager", "White-labeling"],
-    recommended: false,
-  },
-];
+import { CheckCircle2, Zap, Building2, Sparkles } from "lucide-react";
 
 export function PricingSection() {
-  const [isAnnual, setIsAnnual] = useState(true);
+  const plans = [
+    {
+      name: "Free",
+      price: "$0",
+      period: "forever",
+      description: "Perfect for getting started",
+      features: [
+        "3 active forms",
+        "100 responses/month",
+        "All field types",
+        "Basic analytics",
+        "7-day data retention",
+        "Community support",
+      ],
+      cta: "Start Free",
+      highlight: false,
+      icon: Sparkles,
+    },
+    {
+      name: "Pro",
+      price: "$29",
+      period: "/month",
+      description: "For creators and small teams",
+      features: [
+        "Unlimited forms",
+        "10,000 responses/month",
+        "Advanced analytics",
+        "Custom branding",
+        "Unlimited data retention",
+        "Webhook integrations",
+        "Priority support",
+        "Export to CSV/JSON",
+      ],
+      cta: "Start Free Trial",
+      highlight: true,
+      popular: true,
+      icon: Zap,
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      period: "",
+      description: "For large organizations",
+      features: [
+        "Everything in Pro",
+        "Unlimited responses",
+        "SSO & SAML",
+        "Dedicated support",
+        "99.9% SLA guarantee",
+        "Custom integrations",
+        "On-premise option",
+        "Training & onboarding",
+      ],
+      cta: "Contact Sales",
+      highlight: false,
+      icon: Building2,
+    },
+  ];
 
   return (
-    <section className="py-24 bg-background relative border-t border-border/40">
-      <div className="container px-4 md:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
-            Simple, transparent pricing
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8">
-            Start for free, upgrade when you need more power. No hidden fees.
-          </p>
+    <section
+      id="pricing"
+      className="relative bg-[#080808] py-16 md:py-24 lg:py-32 px-4 md:px-6 lg:px-12 border-b border-white/5"
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Section Label */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mono text-[#6E6E6E] text-[10px] uppercase tracking-widest mb-4 text-center"
+        >
+          / 006 / PRICING
+        </motion.div>
 
-          <div className="flex items-center justify-center gap-3">
-            <span className={`text-sm ${!isAnnual ? "font-semibold" : "text-muted-foreground"}`}>Monthly</span>
-            <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className="relative w-14 h-8 bg-card border border-border rounded-full p-1 transition-colors hover:border-primary/50"
-            >
+        {/* Heading */}
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="heading-brutalist text-3xl md:text-5xl lg:text-6xl text-white mb-4 text-center"
+        >
+          Simple, transparent pricing.
+          <br />
+          No hidden fees.
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-[#6E6E6E] text-center max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed text-sm md:text-base"
+        >
+          Start free. Upgrade when you need more. Cancel anytime. No credit card required.
+        </motion.p>
+
+        {/* Pricing Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+          {plans.map((plan, idx) => {
+            const Icon = plan.icon;
+            return (
               <motion.div
-                layout
-                className="w-6 h-6 bg-primary rounded-full"
-                animate={{ x: isAnnual ? 24 : 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              />
-            </button>
-            <span className={`text-sm flex items-center gap-1.5 ${isAnnual ? "font-semibold" : "text-muted-foreground"}`}>
-              Annually <span className="text-[10px] uppercase font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full tracking-wider">Save 20%</span>
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className={`relative rounded-3xl p-8 flex flex-col h-full bg-card border ${
-                plan.recommended 
-                  ? "border-primary/50 shadow-2xl shadow-primary/5" 
-                  : "border-border/50 shadow-xl"
-              }`}
-            >
-              {plan.recommended && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase shadow-md">
-                  Recommended
-                </div>
-              )}
-              
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-sm text-muted-foreground">{plan.description}</p>
-              </div>
-
-              <div className="mb-8 flex items-baseline gap-2">
-                <span className="text-5xl font-extrabold tracking-tight">
-                  ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                </span>
-                <span className="text-muted-foreground font-medium">/mo</span>
-              </div>
-
-              <div className="flex-1 space-y-4 mb-8">
-                {plan.features.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Check className="w-3 h-3 text-primary" />
-                    </div>
-                    {feature}
-                  </div>
-                ))}
-              </div>
-
-              <Button 
-                variant={plan.recommended ? "default" : "outline"} 
-                className="w-full rounded-full h-12 text-base font-semibold"
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                className={`
+                  relative border rounded-lg p-6 md:p-8 transition-all flex flex-col justify-between h-full
+                  ${
+                    plan.highlight
+                      ? "border-[#E94B35] bg-gradient-to-br from-[#E94B35]/10 to-[#FF3B30]/5 lg:scale-105 shadow-[0_0_50px_rgba(233,75,53,0.2)]"
+                      : "border-white/10 bg-[#0D0D0D] hover:border-white/20"
+                  }
+                `}
               >
-                Get Started
-              </Button>
-            </motion.div>
-          ))}
+                <div>
+                  {/* Popular badge */}
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
+                      <div className="px-4 py-1 bg-[#E94B35] text-white rounded-full shadow-lg">
+                        <div className="mono text-[10px] uppercase tracking-widest flex items-center gap-1 font-bold">
+                          <Zap className="w-3 h-3" />
+                          Most Popular
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Icon */}
+                  <div className="mb-6">
+                    <div
+                      className={`inline-flex p-3 rounded-lg ${
+                        plan.highlight
+                          ? "bg-[#E94B35]/20 border border-[#E94B35]/30"
+                          : "bg-[#080808] border border-white/10"
+                      }`}
+                    >
+                      <Icon
+                        className={`w-6 h-6 ${plan.highlight ? "text-[#E94B35]" : "text-[#6E6E6E]"}`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Plan name */}
+                  <h3 className="text-2xl font-bold text-white mb-2 heading-brutalist">
+                    {plan.name}
+                  </h3>
+
+                  {/* Price */}
+                  <div className="mb-4">
+                    <span className="text-4xl md:text-5xl font-bold text-white heading-brutalist">
+                      {plan.price}
+                    </span>
+                    {plan.period && (
+                      <span className="text-[#6E6E6E] mono text-xs ml-1">{plan.period}</span>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-[#6E6E6E] text-xs mb-6 leading-relaxed">{plan.description}</p>
+                </div>
+
+                <div>
+                  {/* CTA */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`
+                      w-full py-3 rounded-full mono text-xs font-semibold tracking-wider uppercase transition-all mb-8 cursor-pointer
+                      ${
+                        plan.highlight
+                          ? "bg-[#E94B35] text-white hover:bg-[#FF3B30] shadow-[0_0_30px_rgba(233,75,53,0.3)]"
+                          : "border border-white/20 text-white hover:border-white/40 hover:bg-white/5"
+                      }
+                    `}
+                  >
+                    {plan.cta}
+                  </motion.button>
+
+                  {/* Features */}
+                  <div className="space-y-3">
+                    {plan.features.map((feature, featureIdx) => (
+                      <div key={featureIdx} className="flex items-start gap-3">
+                        <CheckCircle2
+                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                            plan.highlight ? "text-[#E94B35]" : "text-terminal-green"
+                          }`}
+                        />
+                        <span className="text-white/80 text-xs leading-normal">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
+
+        {/* Additional info */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
+          {[
+            { label: "Money-back guarantee", value: "30 days" },
+            { label: "Average setup time", value: "< 5 min" },
+            { label: "Customer satisfaction", value: "98%" },
+          ].map((stat, idx) => (
+            <div
+              key={idx}
+              className="text-center p-6 border border-white/5 bg-[#0D0D0D] rounded-lg"
+            >
+              <div className="heading-brutalist text-2xl md:text-3xl text-[#E94B35] mb-2">
+                {stat.value}
+              </div>
+              <div className="mono text-[#6E6E6E] text-[10px] uppercase tracking-wider">
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </motion.div>
       </div>
+
+      {/* Background grid pattern */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines" />
     </section>
   );
 }

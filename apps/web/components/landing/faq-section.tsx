@@ -6,24 +6,29 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    question: "How is MiraiForms different from Typeform or Google Forms?",
-    answer: "MiraiForms uses advanced AI to generate, optimize, and analyze your forms. Instead of manually dragging blocks, you simply describe what you need. Furthermore, our predictive analytics help you understand exactly why users drop off.",
+    question: "What is MiraiForms?",
+    answer:
+      "MiraiForms is a modern SaaS form builder platform that helps creators build beautiful interactive forms, publish instantly, and collect responses through a smooth and intuitive experience.",
   },
   {
-    question: "Can I export my data or integrate with my CRM?",
-    answer: "Absolutely. We offer native integrations with over 500 apps via Zapier and webhooks. You can instantly push responses to Salesforce, HubSpot, Notion, or export as CSV/JSON.",
+    question: "Can I create and share forms without coding?",
+    answer:
+      "Yes. MiraiForms is designed with a visual form builder that lets you create, customize, and publish forms without writing any code.",
   },
   {
-    question: "Is my data secure and compliant?",
-    answer: "Security is our top priority. We are SOC2 Type II compliant, GDPR ready, and use AES-256 encryption at rest. Enterprise plans include granular RBAC and SAML SSO.",
+    question: "What types of fields does MiraiForms support?",
+    answer:
+      "MiraiForms supports multiple field types including short text, long text, email, number, select, checkbox, rating, date, and more.",
   },
   {
-    question: "Can I host forms on my own custom domain?",
-    answer: "Yes, Pro and Enterprise plans allow you to connect a custom domain (e.g., forms.yourcompany.com) to maintain complete brand consistency.",
+    question: "Do users need an account to submit forms?",
+    answer:
+      "No. Anyone with the public or unlisted form link can submit responses without creating an account or logging in.",
   },
   {
-    question: "What happens if I exceed my monthly response limit?",
-    answer: "We'll never block your forms. We will notify you when you reach 80% and 100% of your limit. If you exceed it, we will simply charge a small overage fee at the end of your billing cycle.",
+    question: "Can I track responses and analytics?",
+    answer:
+      "Absolutely. MiraiForms includes a modern analytics dashboard where creators can monitor submissions, response activity, and form performance.",
   },
 ];
 
@@ -32,7 +37,7 @@ export function FaqSection() {
 
   return (
     <section className="py-24 bg-background relative border-t border-border/40">
-      <div className="container px-4 md:px-6 max-w-4xl">
+      <div className="container mx-auto px-4 md:px-6 max-w-4xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
             Frequently Asked Questions

@@ -37,7 +37,10 @@ export function Footer() {
             <ul className="space-y-3">
               {["Features", "Templates", "Integrations", "Pricing", "Changelog"].map((item) => (
                 <li key={item}>
-                  <Link href="#" className="text-muted-foreground hover:text-primary text-sm transition-colors">
+                  <Link
+                    href="#"
+                    className="text-muted-foreground hover:text-primary text-sm transition-colors"
+                  >
                     {item}
                   </Link>
                 </li>
@@ -50,7 +53,10 @@ export function Footer() {
             <ul className="space-y-3">
               {["Documentation", "Help Center", "Community", "Blog", "Webinars"].map((item) => (
                 <li key={item}>
-                  <Link href="#" className="text-muted-foreground hover:text-primary text-sm transition-colors">
+                  <Link
+                    href="#"
+                    className="text-muted-foreground hover:text-primary text-sm transition-colors"
+                  >
                     {item}
                   </Link>
                 </li>
@@ -63,7 +69,10 @@ export function Footer() {
             <ul className="space-y-3">
               {["About Us", "Careers", "Legal", "Privacy", "Terms"].map((item) => (
                 <li key={item}>
-                  <Link href="#" className="text-muted-foreground hover:text-primary text-sm transition-colors">
+                  <Link
+                    href="#"
+                    className="text-muted-foreground hover:text-primary text-sm transition-colors"
+                  >
                     {item}
                   </Link>
                 </li>
@@ -76,7 +85,7 @@ export function Footer() {
           <p>© {new Date().getFullYear()} MiraiForms Inc. All rights reserved.</p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0 font-mono text-xs opacity-50">
             <span>SYS/OK</span>
-            <span>v2.4.0</span>
+            <span>v0.1.0</span>
           </div>
         </div>
       </div>
