@@ -120,21 +120,23 @@ export default function LoginPage() {
   const isFormLoading = isLoading || googleLoading || fetchStatus === "fetching";
 
   return (
-    <div className="dark min-h-screen w-full bg-[#030712] flex items-center justify-center p-6 md:p-10 text-slate-100 overflow-hidden relative">
+    <div className="dark min-h-screen w-full bg-[#080808] flex items-center justify-center p-6 md:p-10 text-[#F5F5F5] overflow-hidden relative">
+      {/* Background grid pattern */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
+      
       {/* Background neon ambient gradients */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-purple-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute top-[30%] left-[30%] w-[40%] h-[40%] rounded-full bg-pink-500/5 blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[#E94B35]/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-[#FF3B30]/5 blur-[120px] pointer-events-none" />
 
       {/* Main Container */}
-      <div className="w-full max-w-md z-10 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+      <div className="w-full max-w-md z-10 flex flex-col gap-6">
         
         {/* Logo / Header */}
         <div className="flex flex-col items-center text-center gap-2 mb-2">
-          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[1px] shadow-[0_0_20px_rgba(99,102,241,0.3)]">
-            <div className="flex items-center justify-center h-full w-full rounded-xl bg-slate-950">
+          <div className="flex items-center justify-center h-12 w-12 rounded bg-[#0D0D0D] border border-white/10 p-[1px] shadow-[0_0_20px_rgba(233,75,53,0.15)]">
+            <div className="flex items-center justify-center h-full w-full rounded bg-slate-950">
               <svg
-                className="h-6 w-6 text-indigo-400"
+                className="h-6 w-6 text-[#E94B35]"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -148,23 +150,23 @@ export default function LoginPage() {
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-wider mt-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-            MIRAI FORMS
+          <h1 className="text-xl font-bold tracking-wider mt-2 text-white uppercase mono">
+            MIRAI<span className="text-[#E94B35]">FORMS</span>
           </h1>
-          <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mt-0.5">
-            Next-Gen Form Engine
+          <p className="text-[10px] text-[#6E6E6E] uppercase tracking-widest font-bold mt-0.5 mono">
+            / NEXT_GEN_FORM_ENGINE
           </p>
         </div>
 
         {/* Card Component */}
-        <Card className="border border-white/[0.08] bg-slate-950/45 backdrop-blur-2xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300 hover:border-white/[0.12]">
+        <Card className="border border-white/10 bg-[#0D0D0D]/90 backdrop-blur-2xl rounded shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-300 hover:border-[#E94B35]/30">
           <CardContent className="p-8 flex flex-col gap-6">
             <div className="flex flex-col gap-1.5 text-center sm:text-left">
-              <h2 className="text-xl font-semibold tracking-tight text-white">
+              <h2 className="heading-brutalist text-2xl tracking-wide uppercase text-white">
                 Welcome back
               </h2>
-              <p className="text-sm text-slate-400">
-                Log in to manage and build beautiful interactive forms.
+              <p className="text-xs text-[#6E6E6E] mono">
+                / CORE_SYS_ACCESS: AUTHORIZE TO ENTER WORKSPACE.
               </p>
             </div>
 
@@ -174,7 +176,7 @@ export default function LoginPage() {
               variant="outline"
               disabled={isFormLoading}
               onClick={handleGoogleLogin}
-              className="w-full h-11 bg-white/[0.02] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.15] text-slate-200 flex items-center justify-center gap-3 transition-all duration-300 rounded-xl font-medium shadow-xs hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] active:scale-[0.99]"
+              className="w-full h-11 bg-[#080808] border-white/10 hover:bg-[#0D0D0D] hover:border-[#E94B35]/50 text-[#F5F5F5] flex items-center justify-center gap-3 transition-all duration-300 rounded font-medium shadow-xs hover:shadow-[0_0_20px_rgba(233,75,53,0.1)] active:scale-[0.99] cursor-pointer text-xs mono uppercase tracking-wider"
             >
               {googleLoading ? (
                 <div className="h-4 w-4 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
@@ -204,18 +206,18 @@ export default function LoginPage() {
             {/* Separator */}
             <div className="relative flex items-center justify-center my-1">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-white/[0.08]" />
+                <span className="w-full border-t border-white/5" />
               </div>
-              <span className="relative bg-[#0b0f19] px-4 text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                or email
+              <span className="relative bg-[#0D0D0D] px-4 text-[10px] font-bold text-[#6E6E6E] uppercase tracking-widest mono">
+                OR / EMAIL_AUTH
               </span>
             </div>
 
             {/* Custom Error Banner */}
             {authError && (
-              <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm flex items-start gap-2.5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-3.5 rounded border border-red-500/20 bg-red-500/5 text-red-400 text-xs flex items-start gap-2.5 animate-in fade-in zoom-in-95 duration-200 mono">
                 <svg
-                  className="h-5 w-5 shrink-0 text-red-400/90 mt-0.5"
+                  className="h-4 w-4 shrink-0 text-red-400/90 mt-0.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -234,7 +236,7 @@ export default function LoginPage() {
             {/* Login Credentials Form */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <Field>
-                <FieldLabel className="text-slate-300 text-xs font-semibold tracking-wide uppercase">
+                <FieldLabel className="text-white text-[10px] font-bold tracking-wide uppercase mono">
                   Email Address
                 </FieldLabel>
                 <Input
@@ -243,13 +245,13 @@ export default function LoginPage() {
                   disabled={isFormLoading}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/[0.02] border-white/[0.08] focus:border-indigo-500/50 focus:ring-indigo-500/10 text-slate-100 placeholder-slate-500 rounded-xl h-11 transition-all duration-300 px-3.5"
+                  className="bg-[#080808] border-white/10 focus:border-[#E94B35]/50 focus:ring-transparent text-[#F5F5F5] placeholder-[#6E6E6E] rounded h-11 transition-all duration-300 px-3.5 text-xs"
                 />
               </Field>
 
               <Field>
                 <div className="flex items-center justify-between">
-                  <FieldLabel className="text-slate-300 text-xs font-semibold tracking-wide uppercase">
+                  <FieldLabel className="text-white text-[10px] font-bold tracking-wide uppercase mono">
                     Password
                   </FieldLabel>
                 </div>
@@ -259,7 +261,7 @@ export default function LoginPage() {
                   disabled={isFormLoading}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white/[0.02] border-white/[0.08] focus:border-indigo-500/50 focus:ring-indigo-500/10 text-slate-100 placeholder-slate-500 rounded-xl h-11 transition-all duration-300 px-3.5"
+                  className="bg-[#080808] border-white/10 focus:border-[#E94B35]/50 focus:ring-transparent text-[#F5F5F5] placeholder-[#6E6E6E] rounded h-11 transition-all duration-300 px-3.5 text-xs"
                 />
               </Field>
 
@@ -267,12 +269,12 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isFormLoading}
-                className="w-full h-11 mt-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold hover:opacity-95 shadow-[0_0_25px_rgba(99,102,241,0.2)] active:scale-[0.98] duration-200 rounded-xl flex items-center justify-center gap-2 border-0"
+                className="w-full h-11 mt-2 bg-[#E94B35] text-white font-bold hover:bg-[#FF3B30] shadow-[0_0_25px_rgba(233,75,53,0.2)] active:scale-[0.98] duration-200 rounded flex items-center justify-center gap-2 border-0 cursor-pointer text-xs uppercase mono tracking-widest"
               >
                 {isLoading ? (
                   <>
                     <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Signing in...
+                    Connecting...
                   </>
                 ) : (
                   <>
@@ -298,13 +300,13 @@ export default function LoginPage() {
         </Card>
 
         {/* Form Footer */}
-        <p className="text-center text-sm text-slate-400">
+        <p className="text-center text-xs text-[#6E6E6E] mono">
           Don't have an account?{" "}
           <Link
             href="/signup"
-            className="text-indigo-400 font-semibold hover:text-indigo-300 underline underline-offset-4 decoration-indigo-400/30 hover:decoration-indigo-300 transition-all duration-200"
+            className="text-[#E94B35] font-semibold hover:text-[#FF3B30] underline underline-offset-4 decoration-[#E94B35]/30 hover:decoration-[#FF3B30] transition-all duration-200"
           >
-            Sign up
+            Create account
           </Link>
         </p>
       </div>
