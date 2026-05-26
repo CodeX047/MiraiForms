@@ -12,11 +12,13 @@ import {
   Sparkles,
   RefreshCw,
   Copy,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useListForms, useTogglePublish } from "~/hooks/api/form";
 import { CreateFormModal } from "~/components/create-form-modal";
+import { DeleteFormDialog } from "~/components/delete-form-dialog";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Switch } from "~/components/ui/switch";
@@ -34,6 +36,7 @@ export default function FormsPage() {
   const { togglePublishAsync } = useTogglePublish();
   const [searchTerm, setSearchTerm] = useState("");
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deletingForm, setDeletingForm] = useState<{ id: string; title: string } | null>(null);
 
   const filteredForms =
     forms?.filter(
@@ -310,6 +313,17 @@ export default function FormsPage() {
                             <Copy className="h-3.5 w-3.5" />
                           </Button>
 
+                          {/* Delete Form Button */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDeletingForm(form)}
+                            className="h-8 w-8 p-0 text-[#6E6E6E] hover:text-[#FF3B30] border border-white/10 hover:border-[#FF3B30]/40 hover:bg-[#FF3B30]/5 rounded transition-all cursor-pointer"
+                            title="Delete Form"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+
                           {/* Responses Button */}
                           <Link href={`/dashboard/forms/${form.id}/submissions`}>
                             <Button
@@ -342,6 +356,14 @@ export default function FormsPage() {
           )}
         </div>
       </div>
+
+      <DeleteFormDialog
+        form={deletingForm}
+        open={!!deletingForm}
+        onOpenChange={(v) => {
+          if (!v) setDeletingForm(null);
+        }}
+      />
     </main>
   );
 }

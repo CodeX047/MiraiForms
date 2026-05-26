@@ -164,3 +164,12 @@ export const getFormSubmissionsOutputModel = z.array(
     createdAt: z.date(),
   })
 ).describe("List of form submissions");
+
+export const deleteFormInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form to delete"),
+});
+
+export const deleteFormOutputModel = z.object({
+  id: z.string().describe("ID of the deleted form"),
+});
+

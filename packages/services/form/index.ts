@@ -8,6 +8,8 @@ import {
   listFormByUserIdInput,
   type GetFormByIdInputType,
   getFormByIdInput,
+  type DeleteFormInputType,
+  deleteFormInput,
 } from "./model";
 
 class FromService {
@@ -188,6 +190,35 @@ class FromService {
     }
 
     return result[0]!;
+  }
+
+  public async deleteForm(payload: DeleteFormInputType) {
+    const { formId, userId } = await deleteFormInput.parseAsync(payload);
+    
+    const [form] = await db
+      .select({ createdBy: formsTable.createdBy })
+      .from(formsTable)
+      .where(eq(formsTable.id, formId))
+      .limit(1);
+
+    if (!form) {
+      throw new Error(`Form with ID ${formId} not found`);
+    }
+
+    if (form.createdBy !== userId) {
+      throw new Error("Unauthorized to delete this form");
+    }
+
+    const result = await db
+      .delete(formsTable)
+      .where(eq(formsTable.id, formId))
+      .returning({ id: formsTable.id });
+
+    if (!result || result.length === 0) {
+      throw new Error("Failed to delete form");
+    }
+
+    return { id: result[0]!.id };
   }
 }
 

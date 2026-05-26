@@ -25,6 +25,8 @@ import {
   getFormSubmissionsOutputModel,
   togglePublishInputModel,
   togglePublishOutputModel,
+  deleteFormInputModel,
+  deleteFormOutputModel,
 } from "./model";
 import { z } from "zod";
 
@@ -229,6 +231,29 @@ export const formRouter = router({
         userId: ctx.userId,
       });
       return result;
+    }),
+
+  deleteForm: authedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/deleteForm"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(deleteFormInputModel)
+    .output(deleteFormOutputModel)
+    .mutation(async ({ input, ctx }) => {
+      const { formId } = input;
+      await verifyFormOwnership(formId, ctx.userId);
+
+      const result = await formService.deleteForm({
+        formId,
+        userId: ctx.userId,
+      });
+
+      return { id: result.id };
     }),
 
   submitForm: publicProcedure
