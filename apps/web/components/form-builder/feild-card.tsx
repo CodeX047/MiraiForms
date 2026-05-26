@@ -1,5 +1,7 @@
 import React from "react";
 import { GripVertical, Asterisk, Pencil, Trash2 } from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "~/components/ui/button";
 import { FeildItem } from "./types";
 import { getFieldIcon, getFieldLabel } from "./constants";
@@ -15,8 +17,28 @@ export function FeildCard({
 }) {
   const Icon = getFieldIcon(feild.type);
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: feild.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 50 : "auto",
+  };
+
   return (
-    <div className="group relative rounded border border-white/10 bg-[#0D0D0D] p-5 transition-all hover:border-white/20 overflow-hidden">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="group relative rounded border border-white/10 bg-[#0D0D0D] p-5 transition-all hover:border-white/20 overflow-hidden"
+    >
       {/* Hover glow line */}
       <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#E94B35] via-[#FF3B30] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
@@ -25,7 +47,14 @@ export function FeildCard({
         <div className="flex items-start gap-4 min-w-0 flex-1">
           {/* Drag handle placeholder + type icon */}
           <div className="flex items-center gap-2 pt-0.5 shrink-0">
-            <GripVertical className="h-4 w-4 text-[#6E6E6E]/40 group-hover:text-[#6E6E6E] transition-colors cursor-grab" />
+            <div
+              {...attributes}
+              {...listeners}
+              className="p-1 -ml-1 cursor-grab active:cursor-grabbing text-[#6E6E6E]/40 hover:text-[#6E6E6E] transition-colors shrink-0 touch-none"
+              title="Drag to reorder"
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
             <div className="inline-flex items-center justify-center w-9 h-9 border border-white/10 rounded bg-[#080808] group-hover:border-[#E94B35]/30 transition-all">
               <Icon className="h-4 w-4 text-[#E94B35]" />
             </div>

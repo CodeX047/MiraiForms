@@ -22,6 +22,7 @@ export const updateFeildTypeInput = z.object({
   placeholder: z.string().optional().nullable().describe("Updated placeholder text"),
   isRequired: z.boolean().optional().describe("Updated required flag"),
   choices: z.array(z.string()).optional().nullable().describe("Updated dropdown choices"),
+  index: z.string().optional().describe("Updated order index"),
 });
 
 export type UpdateFeildTypeInputType = z.infer<typeof updateFeildTypeInput>;

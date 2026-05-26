@@ -88,6 +88,7 @@ export const updateFeildInputModel = z.object({
   placeholder: z.string().optional().nullable().describe("Updated placeholder text"),
   isRequired: z.boolean().optional().describe("Updated required flag"),
   choices: z.array(z.string()).optional().nullable().describe("Updated dropdown choices"),
+  index: z.string().optional().describe("Updated order index"),
 });
 
 export const updateFeildOutputModel = z.object({

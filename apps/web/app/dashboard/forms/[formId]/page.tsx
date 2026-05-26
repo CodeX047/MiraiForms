@@ -5,8 +5,23 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { ArrowLeft, Plus, RefreshCw, Layers } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { toast } from "sonner";
 
-import { useGetFeilds } from "~/hooks/api/form";
+import { useGetFeilds, useUpdateFeild } from "~/hooks/api/form";
+import { trpc } from "~/trpc/client";
 import { Button } from "~/components/ui/button";
 
 import { FeildItem } from "~/components/form-builder/types";
@@ -19,11 +34,74 @@ export default function FormBuilderPage() {
   const params = useParams<{ formId: string }>();
   const formId = params.formId;
 
+  const utils = trpc.useUtils();
   const { feilds, isLoading, error } = useGetFeilds(formId);
+  const { updateFeildAsync } = useUpdateFeild(formId);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editFeild, setEditFeild] = useState<FeildItem | null>(null);
   const [deleteFeild, setDeleteFeild] = useState<FeildItem | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Small threshold ensures clicks on edit/delete still trigger normally
+      },
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !feilds) return;
+
+    const oldIndex = feilds.findIndex((f) => f.id === active.id);
+    const newIndex = feilds.findIndex((f) => f.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // 1. Calculate the new fractional index
+    const reordered = arrayMove(feilds, oldIndex, newIndex);
+    let newFractionalIndex: string;
+
+    if (newIndex === 0) {
+      // Moved to very beginning
+      const nextIdx = parseFloat(reordered[1]!.index);
+      newFractionalIndex = (nextIdx - 1.0).toFixed(2);
+    } else if (newIndex === reordered.length - 1) {
+      // Moved to very end
+      const prevIdx = parseFloat(reordered[reordered.length - 2]!.index);
+      newFractionalIndex = (prevIdx + 1.0).toFixed(2);
+    } else {
+      // Moved between two fields
+      const prevIdx = parseFloat(reordered[newIndex - 1]!.index);
+      const nextIdx = parseFloat(reordered[newIndex + 1]!.index);
+      newFractionalIndex = ((prevIdx + nextIdx) / 2.0).toFixed(2);
+    }
+
+    // 2. Perform Optimistic UI Update
+    const previousFields = feilds;
+    const optimisticallyReordered = reordered.map((field) =>
+      field.id === active.id ? { ...field, index: newFractionalIndex } : field
+    );
+
+    // Sort optimistic state in ascending order of indexes to keep views perfectly aligned
+    optimisticallyReordered.sort((a, b) => parseFloat(a.index) - parseFloat(b.index));
+    utils.form.getFeilds.setData({ formId }, optimisticallyReordered);
+
+    // 3. Trigger Background Mutation
+    try {
+      await updateFeildAsync({
+        feildId: active.id as string,
+        index: newFractionalIndex,
+      });
+      toast.success("Order updated successfully");
+    } catch (err: any) {
+      // Rollback to previous state on failure
+      utils.form.getFeilds.setData({ formId }, previousFields);
+      toast.error("Failed to reorder field", {
+        description: err?.message || "Something went wrong.",
+      });
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#080808] text-[#F5F5F5] relative overflow-hidden">
@@ -154,17 +232,28 @@ export default function FormBuilderPage() {
                   {feilds.length} field{feilds.length !== 1 ? "s" : ""}
                 </span>
                 <span className="text-[10px] mono text-[#6E6E6E]/50 uppercase tracking-widest">
-                  Ordered by index
+                  Drag handles to sort
                 </span>
               </div>
-              {feilds.map((feild) => (
-                <FeildCard
-                  key={feild.id}
-                  feild={feild}
-                  onEdit={() => setEditFeild(feild)}
-                  onDelete={() => setDeleteFeild(feild)}
-                />
-              ))}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={feilds.map((f) => f.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {feilds.map((feild) => (
+                    <FeildCard
+                      key={feild.id}
+                      feild={feild}
+                      onEdit={() => setEditFeild(feild)}
+                      onDelete={() => setDeleteFeild(feild)}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             </div>
           )}
         </div>

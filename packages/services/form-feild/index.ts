@@ -72,6 +72,7 @@ class FormFeildService {
     if ("description" in updates) patch.description = updates.description ?? null;
     if ("placeholder" in updates) patch.placeholder = updates.placeholder ?? null;
     if ("choices" in updates) patch.choices = updates.choices ?? null;
+    if (updates.index !== undefined) patch.index = updates.index;
 
     if (Object.keys(patch).length === 0) throw new Error("No fields provided to update");
 

@@ -18,6 +18,8 @@ import { toast } from "sonner";
 
 import { useGetFeilds, useGetFormSubmissions, useListForms } from "~/hooks/api/form";
 import { Button } from "~/components/ui/button";
+import { calculateMetrics } from "~/lib/analytics/calculate-metrics";
+import { formatDuration } from "~/lib/analytics/format-duration";
 import {
   Table,
   TableHeader,
@@ -69,16 +71,9 @@ export default function FormSubmissionsPage() {
   const isLoading = loadingFields || loadingSubmissions;
   const isError = errorFields || errorSubmissions;
 
-  // Aggregate Stats
-  const totalSubmissions = submissions?.length || 0;
-
-  const validCompletionTimes = submissions
-    ?.map((s) => s.metadata?.completionTime)
-    .filter((t): t is number => typeof t === "number" && t > 0) || [];
-  
-  const avgCompletionTime = validCompletionTimes.length > 0
-    ? Math.round(validCompletionTimes.reduce((a, b) => a + b, 0) / validCompletionTimes.length)
-    : null;
+  // Aggregate Stats using production-grade utilities
+  const metrics = calculateMetrics(submissions);
+  const totalSubmissions = metrics.totalCount;
 
   const lastSubmissionDate = submissions && submissions.length > 0
     ? new Date(submissions[0]!.createdAt)
@@ -214,19 +209,56 @@ export default function FormSubmissionsPage() {
           </div>
 
           {/* Card 2: Average Completion Time */}
-          <div className="rounded border border-white/10 bg-[#0D0D0D] p-6 shadow-xl relative overflow-hidden group hover:border-[#E94B35]/30 transition-colors">
-            <div className="absolute top-0 right-0 p-4 opacity-5 text-white">
+          <div className="rounded border border-white/10 bg-[#0D0D0D] p-6 shadow-xl relative group hover:border-[#E94B35]/30 transition-colors">
+            <div className="absolute top-0 right-0 p-4 opacity-5 text-white pointer-events-none">
               <Clock className="h-20 w-20" />
             </div>
-            <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest block mb-2">
-              AVG_TRANSMISSION_SPEED
-            </span>
+            
+            <div className="relative inline-block group/tooltip mb-2">
+              <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest cursor-help border-b border-dashed border-white/20 pb-0.5 select-none">
+                AVG_COMPLETION_TIME
+              </span>
+              
+              {/* Premium cyberpunk tooltip */}
+              <div className="absolute bottom-full left-0 mb-2 w-52 scale-95 opacity-0 pointer-events-none group-hover/tooltip:scale-100 group-hover/tooltip:opacity-100 transition-all duration-200 z-50 rounded border border-white/10 bg-[#080808] p-2.5 shadow-2xl text-[10px] mono text-[#A0A0A0] leading-relaxed">
+                <span className="text-white font-bold block mb-1">TELEMETRY METRIC</span>
+                Average time users take to complete this form.
+                <div className="absolute top-full left-4 -mt-[1px] border-4 border-transparent border-t-[#080808] z-50" />
+              </div>
+            </div>
+
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-extrabold text-white mono drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">
-                {isLoading ? "--" : avgCompletionTime !== null ? `${avgCompletionTime}s` : "N/A"}
+                {isLoading ? (
+                  "--"
+                ) : metrics.average !== null ? (
+                  formatDuration(metrics.average)
+                ) : (
+                  <span className="text-[16px] font-extrabold text-[#E94B35]/70 tracking-wider uppercase">NO TELEMETRY DATA</span>
+                )}
               </span>
-              <span className="text-xs mono text-[#6E6E6E]">{avgCompletionTime !== null ? "per completion" : "no data"}</span>
+              {!isLoading && metrics.average !== null && (
+                <span className="text-xs mono text-[#6E6E6E]">per completion</span>
+              )}
             </div>
+
+            {/* Premium sub-metrics block */}
+            {!isLoading && metrics.validCount > 0 && (
+              <div className="mt-4 pt-3 border-t border-white/5 grid grid-cols-3 gap-2 text-[10px] mono text-[#6E6E6E] relative z-10">
+                <div>
+                  <span className="block text-[8px] text-[#6E6E6E]/60 uppercase tracking-wider mb-0.5">Min</span>
+                  <span className="text-white font-semibold">{formatDuration(metrics.min!)}</span>
+                </div>
+                <div>
+                  <span className="block text-[8px] text-[#6E6E6E]/60 uppercase tracking-wider mb-0.5">Median</span>
+                  <span className="text-white font-semibold">{formatDuration(metrics.median!)}</span>
+                </div>
+                <div>
+                  <span className="block text-[8px] text-[#6E6E6E]/60 uppercase tracking-wider mb-0.5">Max</span>
+                  <span className="text-white font-semibold">{formatDuration(metrics.max!)}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Card 3: Last Submission Received */}
