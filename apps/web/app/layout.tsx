@@ -34,7 +34,7 @@ export default function RootLayout({
       afterSignOutUrl="/"
     >
       <html lang="en" suppressHydrationWarning className="dark">
-        <body className={`${inter.variable} ${spaceGrotesk.variable} ${jetBrainsMono.variable} dark antialiased`}>
+        <body suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable} ${jetBrainsMono.variable} dark antialiased`}>
           <GlobalProviders>{children}</GlobalProviders>
         </body>
       </html>
