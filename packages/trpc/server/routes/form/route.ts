@@ -1,6 +1,6 @@
 import { authedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
-import { formService, formFeildService, formSubmissionService } from "../../services/index";
+import { formService, formFieldService, formSubmissionService } from "../../services/index";
 import { TRPCError } from "@trpc/server";
 import { db, eq } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
@@ -130,7 +130,7 @@ export const formRouter = router({
       const { formId } = input;
       await verifyFormOwnership(formId, ctx.userId);
 
-      const { id, index, labelKey } = await formFeildService.createFeild(input);
+      const { id, index, labelKey } = await formFieldService.createFeild(input);
       return { id, index, labelKey };
     }),
 
@@ -149,7 +149,7 @@ export const formRouter = router({
       const { feildId } = input;
       await verifyFieldOwnership(feildId, ctx.userId);
 
-      const { id } = await formFeildService.updateFeild(input);
+      const { id } = await formFieldService.updateFeild(input);
       return { id };
     }),
 
@@ -168,7 +168,7 @@ export const formRouter = router({
       const { formId } = input;
       await verifyFormOwnership(formId, ctx.userId);
 
-      const result = await formFeildService.getFeilds(input);
+      const result = await formFieldService.getFeilds(input);
       return result;
     }),
 
@@ -187,7 +187,7 @@ export const formRouter = router({
       const { feildId } = input;
       await verifyFieldOwnership(feildId, ctx.userId);
 
-      const { id } = await formFeildService.deleteFeild(input);
+      const { id } = await formFieldService.deleteFeild(input);
       return { id };
     }),
 

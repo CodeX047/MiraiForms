@@ -19,7 +19,7 @@ function toLabelKey(lable: string): string {
     .replace(/^_|_$/g, "");
 }
 
-class FormFeildService {
+class FormFieldService {
   private async getNextIndex(formId: string): Promise<string> {
     const result = await db
       .select({ maxIndex: max(formFieldsTable.index) })
@@ -125,4 +125,4 @@ class FormFeildService {
   }
 }
 
-export default FormFeildService;
+export default FormFieldService;

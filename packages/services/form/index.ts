@@ -12,7 +12,7 @@ import {
   deleteFormInput,
 } from "./model";
 
-class FromService {
+class FormService {
   private async generateUniqueSlug(title: string): Promise<string> {
     const baseSlug = title
       .toLowerCase()
@@ -222,4 +222,4 @@ class FromService {
   }
 }
 
-export default FromService;
+export default FormService;
