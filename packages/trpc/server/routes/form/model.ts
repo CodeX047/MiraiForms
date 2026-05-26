@@ -47,6 +47,7 @@ export const getPublicFormOutputModel = z.object({
         .enum(["TEXT", "EMAIL", "NUMBER", "SELECT", "YES_NO", "PASSWORD"])
         .describe("Field type"),
       index: z.string().describe("Display order index"),
+      choices: z.array(z.string()).nullable().optional().describe("Choice options for SELECT field"),
     })
   ).describe("Form fields"),
 });
@@ -70,6 +71,7 @@ export const createFeildInputModel = z.object({
   description: z.string().optional().describe("Helper text shown below the field"),
   placeholder: z.string().optional().describe("Placeholder text for the field"),
   isRequired: z.boolean().optional().default(false).describe("Whether the field is required"),
+  choices: z.array(z.string()).optional().describe("Choice options for SELECT field"),
 });
 
 export const createFeildOutputModel = z.object({
@@ -85,6 +87,7 @@ export const updateFeildInputModel = z.object({
   description: z.string().optional().nullable().describe("Updated helper text"),
   placeholder: z.string().optional().nullable().describe("Updated placeholder text"),
   isRequired: z.boolean().optional().describe("Updated required flag"),
+  choices: z.array(z.string()).optional().nullable().describe("Updated dropdown choices"),
 });
 
 export const updateFeildOutputModel = z.object({
@@ -107,6 +110,7 @@ export const getFeildsOutputModel = z.array(
       .enum(["TEXT", "EMAIL", "NUMBER", "SELECT", "YES_NO", "PASSWORD"])
       .describe("Field type"),
     index: z.string().describe("Display order index"),
+    choices: z.array(z.string()).nullable().optional().describe("Choice options for SELECT field"),
   }),
 );
 

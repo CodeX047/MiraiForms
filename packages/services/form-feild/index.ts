@@ -32,7 +32,7 @@ class FormFeildService {
   }
 
   public async createFeild(payload: CreateFeildInputType) {
-    const { label, type, formId, description, placeholder, isRequired } =
+    const { label, type, formId, description, placeholder, isRequired, choices } =
       await createFiledInput.parseAsync(payload);
 
     const labelKey = toLabelKey(label);
@@ -49,6 +49,7 @@ class FormFeildService {
         placeholder,
         isRequired,
         index,
+        choices: choices ?? null,
       })
       .returning({
         id: formFieldsTable.id,
@@ -70,6 +71,7 @@ class FormFeildService {
     if (updates.isRequired !== undefined) patch.isRequired = updates.isRequired;
     if ("description" in updates) patch.description = updates.description ?? null;
     if ("placeholder" in updates) patch.placeholder = updates.placeholder ?? null;
+    if ("choices" in updates) patch.choices = updates.choices ?? null;
 
     if (Object.keys(patch).length === 0) throw new Error("No fields provided to update");
 
@@ -98,6 +100,7 @@ class FormFeildService {
         isRequired: formFieldsTable.isRequired,
         type: formFieldsTable.type,
         index: formFieldsTable.index,
+        choices: formFieldsTable.choices,
       })
       .from(formFieldsTable)
       .where(eq(formFieldsTable.formId, formId))

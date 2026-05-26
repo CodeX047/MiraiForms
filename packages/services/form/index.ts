@@ -97,6 +97,7 @@ class FromService {
           isRequired: formFieldsTable.isRequired,
           type: formFieldsTable.type,
           index: formFieldsTable.index,
+          choices: formFieldsTable.choices,
         },
       })
       .from(formsTable)
@@ -139,6 +140,7 @@ class FromService {
           isRequired: formFieldsTable.isRequired,
           type: formFieldsTable.type,
           index: formFieldsTable.index,
+          choices: formFieldsTable.choices,
         },
       })
       .from(formsTable)

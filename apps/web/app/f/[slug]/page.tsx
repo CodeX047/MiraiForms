@@ -271,9 +271,23 @@ export default function PublicFormPage() {
                               <SelectValue placeholder={field.placeholder || "Select an option..."} />
                             </SelectTrigger>
                             <SelectContent className="bg-[#0D0D0D] border-white/10">
-                              <SelectItem value="Option A" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option A</SelectItem>
-                              <SelectItem value="Option B" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option B</SelectItem>
-                              <SelectItem value="Option C" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option C</SelectItem>
+                              {field.choices && field.choices.length > 0 ? (
+                                field.choices.map((choice) => (
+                                  <SelectItem
+                                    key={choice}
+                                    value={choice}
+                                    className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono"
+                                  >
+                                    {choice}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <>
+                                  <SelectItem value="Option A" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option A</SelectItem>
+                                  <SelectItem value="Option B" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option B</SelectItem>
+                                  <SelectItem value="Option C" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option C</SelectItem>
+                                </>
+                              )}
                             </SelectContent>
                           </Select>
                         )}

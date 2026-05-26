@@ -9,6 +9,7 @@ export const createFiledInput = z.object({
   description: z.string().optional().describe("Helper text shown below the feild"),
   placeholder: z.string().optional().describe("Placeholder text for the feild"),
   isRequired: z.boolean().optional().default(false).describe("Weather the feild is required"),
+  choices: z.array(z.string()).optional().describe("Dropdown choices for SELECT field"),
 });
 
 export type CreateFeildInputType = z.infer<typeof createFiledInput>;
@@ -20,6 +21,7 @@ export const updateFeildTypeInput = z.object({
   description: z.string().optional().nullable().describe("Updated helper text"),
   placeholder: z.string().optional().nullable().describe("Updated placeholder text"),
   isRequired: z.boolean().optional().describe("Updated required flag"),
+  choices: z.array(z.string()).optional().nullable().describe("Updated dropdown choices"),
 });
 
 export type UpdateFeildTypeInputType = z.infer<typeof updateFeildTypeInput>;
