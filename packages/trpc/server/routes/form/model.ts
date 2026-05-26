@@ -103,3 +103,45 @@ export const deleteFeildInputModel = z.object({
 export const deleteFeildOutputModel = z.object({
   id: z.string().describe("ID of the deleted field"),
 });
+
+export const submitFormInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form being submitted"),
+  responses: z.array(
+    z.object({
+      formFieldId: z.string().uuid(),
+      value: z.string(),
+    })
+  ).describe("Array of form field responses"),
+  metadata: z.object({
+    ip: z.string().optional(),
+    userAgent: z.string().optional(),
+    completionTime: z.number().optional(),
+  }).optional().describe("Metadata about the submission"),
+});
+
+export const submitFormOutputModel = z.object({
+  id: z.string().describe("ID of the created submission"),
+});
+
+export const getFormSubmissionsInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form to fetch submissions for"),
+});
+
+export const getFormSubmissionsOutputModel = z.array(
+  z.object({
+    id: z.string(),
+    formId: z.string(),
+    responses: z.array(
+      z.object({
+        formFieldId: z.string().uuid(),
+        value: z.string(),
+      })
+    ).nullable(),
+    metadata: z.object({
+      ip: z.string().optional(),
+      userAgent: z.string().optional(),
+      completionTime: z.number().optional(),
+    }).nullable(),
+    createdAt: z.date(),
+  })
+).describe("List of form submissions");

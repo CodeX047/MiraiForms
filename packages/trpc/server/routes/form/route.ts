@@ -1,6 +1,6 @@
 import { authedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
-import { formService, formFeildService } from "../../services/index";
+import { formService, formFeildService, formSubmissionService } from "../../services/index";
 import {
   createFormInputModel,
   createFromOutputModel,
@@ -15,6 +15,10 @@ import {
   deleteFeildOutputModel,
   getPublicFormInputModel,
   getPublicFormOutputModel,
+  submitFormInputModel,
+  submitFormOutputModel,
+  getFormSubmissionsInputModel,
+  getFormSubmissionsOutputModel,
 } from "./model";
 import { z } from "zod";
 
@@ -140,5 +144,36 @@ export const formRouter = router({
     .query(async ({ input }) => {
       const form = await formService.getFormById(input);
       return form;
+    }),
+
+  submitForm: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/submitForm"),
+        tags: TAGS,
+      },
+    })
+    .input(submitFormInputModel)
+    .output(submitFormOutputModel)
+    .mutation(async ({ input }) => {
+      const { id } = await formSubmissionService.submitForm(input);
+      return { id };
+    }),
+
+  getFormSubmissions: authedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/getFormSubmissions"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(getFormSubmissionsInputModel)
+    .output(getFormSubmissionsOutputModel)
+    .query(async ({ input }) => {
+      const result = await formSubmissionService.getFormSubmissions(input);
+      return result;
     }),
 });
