@@ -103,10 +103,7 @@ class FormFeildService {
       .where(eq(formFieldsTable.formId, formId))
       .orderBy(asc(formFieldsTable.index));
 
-    if (!result || result.length === 0)
-      throw new Error(`Feilds for form with ID : ${formId} deos not exist`);
-
-    return result;
+    return result || [];
   }
 
   public async deleteFeild(payload: DeleteFeildInputType) {
