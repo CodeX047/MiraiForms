@@ -21,6 +21,32 @@ export const listFormOutputModel = z
   )
   .describe("List of forms");
 
+export const getPublicFormInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form"),
+});
+
+export const getPublicFormOutputModel = z.object({
+  id: z.string().describe("ID of the form"),
+  title: z.string().describe("Title of the form"),
+  description: z.string().nullable().optional().describe("Description of the form"),
+  createdAt: z.date().nullable().describe("Creation date of the form"),
+  updatedAt: z.date().nullable().describe("Updation date of the form"),
+  fields: z.array(
+    z.object({
+      id: z.string().describe("ID of the field"),
+      label: z.string().describe("Display label"),
+      labelKey: z.string().describe("Generated label key"),
+      description: z.string().nullable().describe("Helper text"),
+      placeholder: z.string().nullable().describe("Placeholder text"),
+      isRequired: z.boolean().describe("Whether the field is required"),
+      type: z
+        .enum(["TEXT", "EMAIL", "NUMBER", "SELECT", "YES_NO", "PASSWORD"])
+        .describe("Field type"),
+      index: z.string().describe("Display order index"),
+    })
+  ).describe("Form fields"),
+});
+
 const feildTypeEnum = z.enum(["TEXT", "EMAIL", "NUMBER", "SELECT", "YES_NO", "PASSWORD"]);
 
 export const createFeildInputModel = z.object({
