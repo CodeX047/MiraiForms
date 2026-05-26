@@ -15,7 +15,6 @@ import { formsTable } from "./form";
 export const fieldTypeEnum = pgEnum("field_type_enum", [
   "TEXT",
   "EMAIL",
-  "TEXT_AREA",
   "NUMBER",
   "SELECT",
   "YES_NO",
@@ -35,9 +34,7 @@ export const formFieldsTable = pgTable(
 
     placeholder: varchar("placeholder", { length: 100 }),
 
-    isRequired: boolean("is_required")
-      .default(false)
-      .notNull(),
+    isRequired: boolean("is_required").default(false).notNull(),
 
     type: fieldTypeEnum("type").notNull(),
 
@@ -49,9 +46,7 @@ export const formFieldsTable = pgTable(
       })
       .notNull(),
 
-    createdAt: timestamp("created_at")
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
 
     updatedAt: timestamp("updated_at")
       .$onUpdate(() => new Date())
@@ -60,10 +55,7 @@ export const formFieldsTable = pgTable(
   },
   (table) => {
     return {
-      uniqueFormIdAndIndex: unique().on(
-        table.formId,
-        table.index
-      ),
+      uniqueFormIdAndIndex: unique().on(table.formId, table.index),
     };
-  }
+  },
 );
