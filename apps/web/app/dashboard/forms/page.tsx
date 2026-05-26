@@ -11,12 +11,15 @@ import {
   Calendar,
   Sparkles,
   RefreshCw,
+  Copy,
 } from "lucide-react";
+import { toast } from "sonner";
 
-import { useListForms } from "~/hooks/api/form";
+import { useListForms, useTogglePublish } from "~/hooks/api/form";
 import { CreateFormModal } from "~/components/create-form-modal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Switch } from "~/components/ui/switch";
 import {
   Table,
   TableHeader,
@@ -28,7 +31,9 @@ import {
 
 export default function FormsPage() {
   const { forms, isLoading, error } = useListForms();
+  const { togglePublishAsync } = useTogglePublish();
   const [searchTerm, setSearchTerm] = useState("");
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const filteredForms =
     forms?.filter(
@@ -44,6 +49,34 @@ export default function FormsPage() {
       month: "short",
       day: "numeric",
       year: "numeric",
+    });
+  };
+
+  const handleTogglePublish = async (formId: string, currentStatus: boolean) => {
+    setTogglingId(formId);
+    try {
+      await togglePublishAsync({ formId, published: !currentStatus });
+      toast.success(`Form is now ${!currentStatus ? "PUBLISHED" : "OFFLINE"}`, {
+        description: !currentStatus ? "Public submissions are now active." : "Public submissions are disabled.",
+        className: "mono uppercase text-xs border border-[#E94B35] bg-[#0D0D0D] text-white rounded",
+      });
+    } catch (err: any) {
+      toast.error("Failed to update status", {
+        description: err?.message || "Something went wrong.",
+        className: "mono uppercase text-xs border border-[#E94B35] bg-[#0D0D0D] text-white rounded",
+      });
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleCopyLink = (slug: string) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const url = `${baseUrl}/f/${slug}`;
+    navigator.clipboard.writeText(url);
+    toast.success("LINK_COPIED", {
+      description: "Public link copied to your clipboard.",
+      className: "mono uppercase text-xs border border-[#E94B35] bg-[#0D0D0D] text-white rounded",
     });
   };
 
@@ -192,72 +225,118 @@ export default function FormsPage() {
                   <TableHead className="text-white font-bold py-4 text-xs uppercase mono hidden md:table-cell">
                     Created
                   </TableHead>
-                  <TableHead className="text-white font-bold py-4 text-xs uppercase mono hidden sm:table-cell">
-                    Last Updated
+                  <TableHead className="text-white font-bold py-4 text-xs uppercase mono">
+                    Status
                   </TableHead>
                   <TableHead className="text-white font-bold py-4 text-xs uppercase mono text-right pr-6">
-                    Action
+                    Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredForms.map((form) => (
-                  <TableRow
-                    key={form.id}
-                    className="group border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors"
-                  >
-                    {/* Form Details Column */}
-                    <TableCell className="align-top py-4">
-                      <Link
-                        href={`/dashboard/forms/${form.id}`}
-                        className="block focus:outline-none"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-white group-hover:text-[#E94B35] transition-colors text-sm">
-                            {form.title}
-                          </span>
-                          <Sparkles className="h-3 w-3 text-[#E94B35] opacity-0 group-hover:opacity-100 transition-opacity" />
+                {filteredForms.map((form) => {
+                  const isPublished = form.published;
+                  const isCurrentlyToggling = togglingId === form.id;
+
+                  return (
+                    <TableRow
+                      key={form.id}
+                      className="group border-b border-white/5 hover:bg-white/5 transition-colors"
+                    >
+                      {/* Form Details Column */}
+                      <TableCell className="align-top py-4">
+                        <div className="block focus:outline-none">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white group-hover:text-[#E94B35] transition-colors text-sm">
+                              {form.title}
+                            </span>
+                            <Sparkles className="h-3 w-3 text-[#E94B35] opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          {form.description ? (
+                            <p className="mt-1 text-xs text-[#6E6E6E] line-clamp-1 max-w-[280px] sm:max-w-md md:max-w-lg lg:max-w-xl font-light mono">
+                              {form.description}
+                            </p>
+                          ) : (
+                            <p className="mt-1 text-xs text-[#6E6E6E]/40 italic font-light mono">
+                              No description provided.
+                            </p>
+                          )}
+                          <p className="text-[10px] mono text-[#6E6E6E] mt-1 uppercase">
+                            SLUG: <span className="text-white/80 font-normal">/f/{form.slug}</span>
+                          </p>
                         </div>
-                        {form.description ? (
-                          <p className="mt-1 text-xs text-[#6E6E6E] line-clamp-1 max-w-[280px] sm:max-w-md md:max-w-lg lg:max-w-2xl font-light mono">
-                            {form.description}
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs text-[#6E6E6E]/40 italic font-light mono">
-                            No description provided.
-                          </p>
-                        )}
-                      </Link>
-                    </TableCell>
+                      </TableCell>
 
-                    {/* Created At Column */}
-                    <TableCell className="align-middle text-[#6E6E6E] text-xs hidden md:table-cell py-4 mono">
-                      <div className="flex items-center gap-1.5 font-light">
-                        <Calendar className="h-3.5 w-3.5 text-[#6E6E6E]" />
-                        {formatDate(form.createdAt)}
-                      </div>
-                    </TableCell>
+                      {/* Created At Column */}
+                      <TableCell className="align-middle text-[#6E6E6E] text-xs hidden md:table-cell py-4 mono">
+                        <div className="flex items-center gap-1.5 font-light">
+                          <Calendar className="h-3.5 w-3.5 text-[#6E6E6E]" />
+                          {formatDate(form.createdAt)}
+                        </div>
+                      </TableCell>
 
-                    {/* Last Updated At Column */}
-                    <TableCell className="align-middle text-[#6E6E6E] text-xs hidden sm:table-cell py-4 mono">
-                      <div className="font-light">{formatDate(form.updatedAt)}</div>
-                    </TableCell>
+                      {/* Publish Toggle Column */}
+                      <TableCell className="align-middle py-4">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={isPublished}
+                            disabled={isCurrentlyToggling}
+                            onCheckedChange={() => handleTogglePublish(form.id, isPublished)}
+                            className="data-[state=checked]:bg-[#22c55e] data-[state=unchecked]:bg-neutral-800 border border-white/10"
+                          />
+                          <span
+                            className={`text-[10px] font-bold mono uppercase tracking-wider ${
+                              isPublished
+                                ? "text-[#22c55e] drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]"
+                                : "text-[#E94B35] opacity-80"
+                            }`}
+                          >
+                            {isPublished ? "PUBLISHED" : "OFFLINE"}
+                          </span>
+                        </div>
+                      </TableCell>
 
-                    {/* Action Column */}
-                    <TableCell className="align-middle text-right pr-6 py-4">
-                      <Link href={`/dashboard/forms/${form.id}`}>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 text-xs font-semibold uppercase mono border border-white/10 group-hover:border-[#E94B35]/40 group-hover:bg-[#080808] hover:bg-[#0D0D0D] text-white hover:text-[#E94B35] gap-1 rounded transition-all cursor-pointer"
-                        >
-                          Builder
-                          <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      {/* Actions Column */}
+                      <TableCell className="align-middle text-right pr-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Copy Link Button */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleCopyLink(form.slug)}
+                            className="h-8 w-8 p-0 text-[#6E6E6E] hover:text-[#E94B35] border border-white/10 hover:border-[#E94B35]/40 hover:bg-[#080808] rounded transition-all cursor-pointer"
+                            title="Copy Public Link"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+
+                          {/* Responses Button */}
+                          <Link href={`/dashboard/forms/${form.id}/submissions`}>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 text-xs font-semibold uppercase mono border border-white/10 hover:border-[#E94B35]/40 hover:bg-[#080808] text-white hover:text-[#E94B35] gap-1 rounded transition-all cursor-pointer"
+                            >
+                              Responses
+                            </Button>
+                          </Link>
+
+                          {/* Builder Button */}
+                          <Link href={`/dashboard/forms/${form.id}`}>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 text-xs font-semibold uppercase mono border border-white/10 hover:border-[#E94B35]/40 hover:bg-[#080808] text-white hover:text-[#E94B35] gap-1 rounded transition-all cursor-pointer"
+                            >
+                              Builder
+                              <ChevronRight className="h-3.5 w-3.5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

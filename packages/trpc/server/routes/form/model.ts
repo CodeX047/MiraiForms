@@ -15,6 +15,8 @@ export const listFormOutputModel = z
       id: z.string().describe("ID of the form"),
       title: z.string().describe("Title of the form"),
       description: z.string().nullable().optional().describe("Description of the form"),
+      published: z.boolean().describe("Published status of the form"),
+      slug: z.string().describe("Slug of the form"),
       createdAt: z.date().nullable().describe("Creation date of the form"),
       updatedAt: z.date().nullable().describe("Updation date of the form"),
     }),
@@ -22,13 +24,15 @@ export const listFormOutputModel = z
   .describe("List of forms");
 
 export const getPublicFormInputModel = z.object({
-  formId: z.string().uuid().describe("UUID of the form"),
+  slug: z.string().describe("Slug of the form"),
 });
 
 export const getPublicFormOutputModel = z.object({
   id: z.string().describe("ID of the form"),
   title: z.string().describe("Title of the form"),
   description: z.string().nullable().optional().describe("Description of the form"),
+  published: z.boolean().describe("Published status of the form"),
+  slug: z.string().describe("Slug of the form"),
   createdAt: z.date().nullable().describe("Creation date of the form"),
   updatedAt: z.date().nullable().describe("Updation date of the form"),
   fields: z.array(
@@ -45,6 +49,16 @@ export const getPublicFormOutputModel = z.object({
       index: z.string().describe("Display order index"),
     })
   ).describe("Form fields"),
+});
+
+export const togglePublishInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form"),
+  published: z.boolean().describe("New published status"),
+});
+
+export const togglePublishOutputModel = z.object({
+  id: z.string().describe("ID of the updated form"),
+  published: z.boolean().describe("Updated published status"),
 });
 
 const feildTypeEnum = z.enum(["TEXT", "EMAIL", "NUMBER", "SELECT", "YES_NO", "PASSWORD"]);

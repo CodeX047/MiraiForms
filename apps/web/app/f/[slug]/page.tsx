@@ -24,21 +24,20 @@ import {
 } from "~/components/ui/select";
 import { Field, FieldLabel, FieldDescription, FieldError } from "~/components/ui/field";
 
-// Define response state mapped by field ID
 type ResponsesState = Record<string, string>;
 
 export default function PublicFormPage() {
-  const { formId } = useParams() as { formId: string };
-  const { form, isLoading, error } = useGetPublicForm(formId);
+  const { slug } = useParams() as { slug: string };
+  const { form, isLoading, error } = useGetPublicForm(slug);
   const { submitFormAsync, status: submitStatus } = useSubmitForm();
 
   const [responses, setResponses] = useState<ResponsesState>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  
+  const [startTime] = useState<number>(() => Date.now());
+
   const isSubmitting = submitStatus === "pending";
 
-  // Pre-fill default values when form loads
   useEffect(() => {
     if (form && form.fields) {
       const initial: ResponsesState = {};
@@ -55,7 +54,6 @@ export default function PublicFormPage() {
 
   const handleChange = (fieldId: string, value: string) => {
     setResponses((prev) => ({ ...prev, [fieldId]: value }));
-    // Clear validation error on change
     if (validationErrors[fieldId]) {
       setValidationErrors((prev) => {
         const next = { ...prev };
@@ -79,8 +77,7 @@ export default function PublicFormPage() {
           isValid = false;
         }
       }
-      
-      // Basic email validation if provided
+
       if (field.type === "EMAIL" && val && val.trim() !== "") {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
           errors[field.id] = "Please enter a valid email address.";
@@ -95,12 +92,12 @@ export default function PublicFormPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form) return;
     if (!validateForm()) {
       toast.error("Please fill out all required fields correctly.");
       return;
     }
 
-    // Convert map to array format expected by the API
     const responsePayload = Object.entries(responses).map(([formFieldId, value]) => ({
       formFieldId,
       value,
@@ -108,14 +105,14 @@ export default function PublicFormPage() {
 
     try {
       await submitFormAsync({
-        formId,
+        formId: form.id,
         responses: responsePayload,
         metadata: {
           userAgent: window.navigator.userAgent,
-          completionTime: Date.now(),
+          completionTime: Math.round((Date.now() - startTime) / 1000),
         },
       });
-      
+
       setIsSubmitted(true);
       toast.success("Response submitted successfully!");
     } catch (err: any) {
@@ -127,28 +124,42 @@ export default function PublicFormPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-white">
+      <div className="min-h-screen bg-[#080808] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
+        <div className="flex flex-col items-center gap-4 text-white relative z-10">
           <RefreshCw className="h-6 w-6 animate-spin text-[#E94B35]" />
           <p className="mono text-xs text-[#6E6E6E] uppercase tracking-widest">
-            LOADING_FORM...
+            ESTABLISHING_LINK...
           </p>
         </div>
       </div>
     );
   }
 
-  if (error || !form) {
+  // Render branded offline gate if unpublished/not found (throws TRPCError(NOT_FOUND))
+  if (error || !form || !form.published) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6">
-        <div className="max-w-md w-full border border-white/10 bg-[#0D0D0D] rounded p-8 text-center shadow-2xl">
-          <div className="mx-auto mb-4 rounded-full bg-red-500/10 w-12 h-12 flex items-center justify-center text-red-400">
+      <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6 relative overflow-hidden selection:bg-[#E94B35] selection:text-white">
+        {/* Subtle scanline and grid background overlay */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
+        <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0" />
+
+        <div className="max-w-md w-full border border-[#E94B35]/30 bg-[#0D0D0D] p-8 text-center shadow-[0_0_40px_rgba(233,75,53,0.1)] relative z-10 rounded">
+          <div className="mx-auto mb-5 rounded-full bg-[#E94B35]/10 w-14 h-14 flex items-center justify-center text-[#E94B35] border border-[#E94B35]/20 animate-pulse">
             <AlertCircle className="h-6 w-6" />
           </div>
-          <h2 className="text-xl font-bold text-white mono mb-2">Form Unavailable</h2>
-          <p className="text-xs text-[#6E6E6E] mono">
-            {error?.message || "This form does not exist or has been removed."}
+          <h2 className="text-xl font-bold text-white mono mb-2 uppercase tracking-widest drop-shadow-[0_0_8px_rgba(233,75,53,0.3)]">
+            FORM UNAVAILABLE
+          </h2>
+          <p className="text-xs text-[#6E6E6E] mono uppercase tracking-wider mb-6">
+            This transmission is currently offline.
           </p>
+          <div className="h-[1px] bg-white/10 w-full mb-6" />
+          <div className="flex items-center justify-center gap-1.5">
+            <span className="text-[10px] mono text-[#6E6E6E]/60 uppercase">SIGNAL:</span>
+            <span className="text-[10px] mono text-[#E94B35] font-bold uppercase animate-ping mr-1">●</span>
+            <span className="text-[10px] mono text-[#E94B35] font-bold uppercase">NO_SIGNAL</span>
+          </div>
         </div>
       </div>
     );
@@ -156,15 +167,16 @@ export default function PublicFormPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6 relative overflow-hidden">
+      <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6 relative overflow-hidden selection:bg-[#E94B35] selection:text-white">
         <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
+        <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0" />
         <div className="max-w-md w-full relative z-10 text-center animate-in fade-in zoom-in duration-500">
-          <div className="mx-auto mb-6 rounded-full bg-[#E94B35]/10 w-20 h-20 flex items-center justify-center text-[#E94B35] border border-[#E94B35]/20 shadow-[0_0_40px_rgba(233,75,53,0.2)]">
+          <div className="mx-auto mb-6 rounded bg-[#22c55e]/10 w-20 h-20 flex items-center justify-center text-[#22c55e] border border-[#22c55e]/20 shadow-[0_0_40px_rgba(34,197,94,0.15)]">
             <CheckCircle className="h-10 w-10" />
           </div>
-          <h1 className="heading-brutalist text-4xl text-white mb-4">Thank You</h1>
-          <p className="text-sm text-[#6E6E6E] mono max-w-sm mx-auto">
-            Your response for <strong className="text-white">"{form.title}"</strong> has been successfully recorded.
+          <h1 className="heading-brutalist text-4xl text-white mb-4">TRANSMISSION_COMPLETE</h1>
+          <p className="text-xs text-[#6E6E6E] mono max-w-sm mx-auto uppercase">
+            Your response for <strong className="text-white">"{form.title}"</strong> has been successfully broadcasted.
           </p>
           <div className="mt-12 flex items-center justify-center gap-2 opacity-50">
             <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest">Powered by</span>
@@ -180,6 +192,7 @@ export default function PublicFormPage() {
   return (
     <div className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20">
       <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0 fixed" />
+      <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0 fixed" />
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#080808]/80 backdrop-blur-md">
@@ -192,7 +205,7 @@ export default function PublicFormPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-12 relative z-10">
+      <main className="mx-auto max-w-3xl px-6 py-12 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Form Title & Description */}
         <div className="mb-12">
           <h1 className="heading-brutalist text-5xl text-white mb-4">{form.title}</h1>
@@ -204,7 +217,7 @@ export default function PublicFormPage() {
         </div>
 
         {/* Form Body */}
-        {(!form.fields || form.fields.length === 0) ? (
+        {!form.fields || form.fields.length === 0 ? (
           <div className="rounded border border-white/10 bg-[#0D0D0D] p-8 text-center shadow-2xl">
             <Info className="h-6 w-6 text-[#6E6E6E] mx-auto mb-3" />
             <p className="text-xs text-[#6E6E6E] mono">This form currently has no fields to fill out.</p>
@@ -215,21 +228,21 @@ export default function PublicFormPage() {
               {form.fields.map((field, idx) => {
                 const val = responses[field.id] ?? (field.type === "YES_NO" ? "false" : "");
                 const errorMsg = validationErrors[field.id];
-                
+
                 return (
-                  <div 
-                    key={field.id} 
-                    className="rounded border border-white/10 bg-[#0D0D0D]/50 p-6 shadow-xl hover:border-white/20 transition-colors"
+                  <div
+                    key={field.id}
+                    className="rounded border border-white/10 bg-[#0D0D0D]/50 p-6 shadow-xl hover:border-white/20 transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.02)]"
                   >
                     <Field data-invalid={!!errorMsg || undefined}>
                       <FieldLabel className="text-white text-sm font-semibold tracking-wide uppercase mono flex items-center gap-2">
-                        <span className="text-[#E94B35]">{idx + 1}.</span> 
+                        <span className="text-[#E94B35]">{String(idx + 1).padStart(2, "0")}.</span>
                         {field.label}
                         {field.isRequired && <span className="text-[#E94B35] text-lg leading-none">*</span>}
                       </FieldLabel>
-                      
+
                       {field.description && (
-                        <FieldDescription className="text-xs text-[#6E6E6E] mono mb-4 block">
+                        <FieldDescription className="text-xs text-[#6E6E6E] mono mt-1.5 mb-4 block">
                           {field.description}
                         </FieldDescription>
                       )}
@@ -243,7 +256,7 @@ export default function PublicFormPage() {
                             value={val}
                             onChange={(e) => handleChange(field.id, e.target.value)}
                             disabled={isSubmitting}
-                            className="bg-[#080808] border-white/10 text-white placeholder-[#404040] focus:border-[#E94B35]/50 focus:ring-1 focus:ring-[#E94B35]/30 rounded text-sm px-4 py-3 h-auto"
+                            className="bg-[#080808] border-white/10 text-white placeholder-[#404040] focus:border-[#E94B35]/50 focus:ring-1 focus:ring-[#E94B35]/30 rounded text-sm px-4 py-3 h-auto mono"
                           />
                         )}
 
@@ -254,14 +267,13 @@ export default function PublicFormPage() {
                             onValueChange={(v) => handleChange(field.id, v)}
                             disabled={isSubmitting}
                           >
-                            <SelectTrigger className="bg-[#080808] border-white/10 text-white focus:border-[#E94B35]/50 rounded text-sm h-12">
+                            <SelectTrigger className="bg-[#080808] border-white/10 text-white focus:border-[#E94B35]/50 rounded text-sm h-12 mono">
                               <SelectValue placeholder={field.placeholder || "Select an option..."} />
                             </SelectTrigger>
                             <SelectContent className="bg-[#0D0D0D] border-white/10">
-                              {/* Using generic options since 'options' column doesn't exist yet */}
-                              <SelectItem value="Option A" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer">Option A</SelectItem>
-                              <SelectItem value="Option B" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer">Option B</SelectItem>
-                              <SelectItem value="Option C" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer">Option C</SelectItem>
+                              <SelectItem value="Option A" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option A</SelectItem>
+                              <SelectItem value="Option B" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option B</SelectItem>
+                              <SelectItem value="Option C" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option C</SelectItem>
                             </SelectContent>
                           </Select>
                         )}
@@ -273,7 +285,7 @@ export default function PublicFormPage() {
                               checked={val === "true"}
                               onCheckedChange={(c) => handleChange(field.id, c ? "true" : "false")}
                               disabled={isSubmitting}
-                              className="data-[state=checked]:bg-[#E94B35]"
+                              className="data-[state=checked]:bg-[#22c55e]"
                             />
                             <span className="text-sm mono text-white">
                               {val === "true" ? "Yes" : "No"}
@@ -283,7 +295,7 @@ export default function PublicFormPage() {
                       </div>
 
                       {errorMsg && (
-                        <FieldError className="text-xs text-[#FF3B30] mono mt-2 block">
+                        <FieldError className="text-xs text-[#E94B35] mono mt-2 block font-semibold">
                           {errorMsg}
                         </FieldError>
                       )}
@@ -301,8 +313,8 @@ export default function PublicFormPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    SUBMITTING...
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    TRANSMITTING...
                   </>
                 ) : (
                   <>

@@ -1,6 +1,7 @@
 import { authedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
 import { formService, formFeildService, formSubmissionService } from "../../services/index";
+import { TRPCError } from "@trpc/server";
 import {
   createFormInputModel,
   createFromOutputModel,
@@ -19,6 +20,8 @@ import {
   submitFormOutputModel,
   getFormSubmissionsInputModel,
   getFormSubmissionsOutputModel,
+  togglePublishInputModel,
+  togglePublishOutputModel,
 } from "./model";
 import { z } from "zod";
 
@@ -142,8 +145,35 @@ export const formRouter = router({
     .input(getPublicFormInputModel)
     .output(getPublicFormOutputModel)
     .query(async ({ input }) => {
-      const form = await formService.getFormById(input);
+      const form = await formService.getPublicFormBySlug(input);
+      if (!form.published) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "This form is not published or does not exist",
+        });
+      }
       return form;
+    }),
+
+  togglePublish: authedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/togglePublish"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(togglePublishInputModel)
+    .output(togglePublishOutputModel)
+    .mutation(async ({ input, ctx }) => {
+      const { formId, published } = input;
+      const result = await formService.togglePublish({
+        formId,
+        published,
+        userId: ctx.userId,
+      });
+      return result;
     }),
 
   submitForm: publicProcedure

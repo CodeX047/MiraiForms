@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, timestamp, boolean } from "drizzle-orm/pg-core";
 
 export const formsTable = pgTable("forms", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -8,6 +8,10 @@ export const formsTable = pgTable("forms", {
   description: varchar("description", { length: 300 }),
 
   createdBy: varchar("created_by", { length: 255 }).notNull(),
+
+  published: boolean("published").default(false).notNull(),
+
+  slug: varchar("slug", { length: 200 }).notNull().unique(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 
