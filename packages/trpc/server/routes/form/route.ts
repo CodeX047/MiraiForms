@@ -2,6 +2,9 @@ import { authedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
 import { formService, formFeildService, formSubmissionService } from "../../services/index";
 import { TRPCError } from "@trpc/server";
+import { db, eq } from "@repo/database";
+import { formsTable } from "@repo/database/models/form";
+import { formFieldsTable } from "@repo/database/models/form-field";
 import {
   createFormInputModel,
   createFromOutputModel,
@@ -28,6 +31,46 @@ import { z } from "zod";
 const TAGS = ["forms"];
 const FEILD_TAGS = ["form-fields"];
 const getPath = generatePath("/form");
+
+async function verifyFormOwnership(formId: string, userId: string) {
+  const [form] = await db
+    .select({ createdBy: formsTable.createdBy })
+    .from(formsTable)
+    .where(eq(formsTable.id, formId))
+    .limit(1);
+
+  if (!form) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: `Form with ID ${formId} not found`,
+    });
+  }
+
+  if (form.createdBy !== userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized — you do not own this form",
+    });
+  }
+}
+
+async function verifyFieldOwnership(feildId: string, userId: string) {
+  const [field] = await db
+    .select({ formId: formFieldsTable.formId })
+    .from(formFieldsTable)
+    .where(eq(formFieldsTable.id, feildId))
+    .limit(1);
+
+  if (!field) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: `Field with ID ${feildId} not found`,
+    });
+  }
+
+  await verifyFormOwnership(field.formId, userId);
+  return field.formId;
+}
 
 export const formRouter = router({
   createForm: authedProcedure
@@ -81,7 +124,10 @@ export const formRouter = router({
     })
     .input(createFeildInputModel)
     .output(createFeildOutputModel)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const { formId } = input;
+      await verifyFormOwnership(formId, ctx.userId);
+
       const { id, index, labelKey } = await formFeildService.createFeild(input);
       return { id, index, labelKey };
     }),
@@ -97,7 +143,10 @@ export const formRouter = router({
     })
     .input(updateFeildInputModel)
     .output(updateFeildOutputModel)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const { feildId } = input;
+      await verifyFieldOwnership(feildId, ctx.userId);
+
       const { id } = await formFeildService.updateFeild(input);
       return { id };
     }),
@@ -113,7 +162,10 @@ export const formRouter = router({
     })
     .input(getFeildsInputModel)
     .output(getFeildsOutputModel)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const { formId } = input;
+      await verifyFormOwnership(formId, ctx.userId);
+
       const result = await formFeildService.getFeilds(input);
       return result;
     }),
@@ -129,7 +181,10 @@ export const formRouter = router({
     })
     .input(deleteFeildInputModel)
     .output(deleteFeildOutputModel)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const { feildId } = input;
+      await verifyFieldOwnership(feildId, ctx.userId);
+
       const { id } = await formFeildService.deleteFeild(input);
       return { id };
     }),
@@ -202,7 +257,10 @@ export const formRouter = router({
     })
     .input(getFormSubmissionsInputModel)
     .output(getFormSubmissionsOutputModel)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const { formId } = input;
+      await verifyFormOwnership(formId, ctx.userId);
+
       const result = await formSubmissionService.getFormSubmissions(input);
       return result;
     }),
