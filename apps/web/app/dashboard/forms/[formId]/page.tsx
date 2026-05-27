@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { ArrowLeft, Plus, RefreshCw, Layers } from "lucide-react";
+import { ArrowLeft, Plus, RefreshCw, Layers, Eye } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -20,7 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { toast } from "sonner";
 
-import { useGetFeilds, useUpdateFeild } from "~/hooks/api/form";
+import { useGetFeilds, useUpdateFeild, useGetForm } from "~/hooks/api/form";
 import { trpc } from "~/trpc/client";
 import { Button } from "~/components/ui/button";
 
@@ -37,6 +37,7 @@ export default function FormBuilderPage() {
   const utils = trpc.useUtils();
   const { feilds, isLoading, error } = useGetFeilds(formId);
   const { updateFeildAsync } = useUpdateFeild(formId);
+  const { form } = useGetForm(formId);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editFeild, setEditFeild] = useState<FeildItem | null>(null);
@@ -149,18 +150,37 @@ export default function FormBuilderPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="heading-brutalist text-4xl text-white">Form Builder</h2>
-              <p className="text-xs mono text-[#6E6E6E] mt-1 uppercase tracking-wider">
-                ID: {formId}
-              </p>
+              {form ? (
+                <p className="text-xs mono text-[#6E6E6E] mt-1 uppercase tracking-wider">
+                  TITLE: <span className="text-white/80">{form.title}</span> | SLUG: <span className="text-white/80">/f/{form.slug}</span>
+                </p>
+              ) : (
+                <p className="text-xs mono text-[#6E6E6E] mt-1 uppercase tracking-wider">
+                  ID: {formId}
+                </p>
+              )}
             </div>
-            <Button
-              id="add-field-button"
-              onClick={() => setCreateOpen(true)}
-              className="gap-2 bg-[#080808] border border-[#E94B35] text-white hover:bg-[#E94B35] transition-all cursor-pointer font-bold mono text-xs uppercase tracking-wider rounded px-5 py-2.5 shadow-[0_0_20px_rgba(233,75,53,0.15)] hover:shadow-[0_0_30px_rgba(233,75,53,0.3)]"
-            >
-              <Plus className="h-4 w-4" />
-              Add Field
-            </Button>
+            <div className="flex items-center gap-3">
+              {form && (
+                <Link href={`/f/${form.slug}?preview=true`} target="_blank">
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-white/10 hover:border-[#E94B35]/40 text-white hover:bg-white/5 font-bold mono text-xs uppercase tracking-wider rounded px-5 py-2.5 transition-all cursor-pointer"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Preview Form
+                  </Button>
+                </Link>
+              )}
+              <Button
+                id="add-field-button"
+                onClick={() => setCreateOpen(true)}
+                className="gap-2 bg-[#080808] border border-[#E94B35] text-white hover:bg-[#E94B35] transition-all cursor-pointer font-bold mono text-xs uppercase tracking-wider rounded px-5 py-2.5 shadow-[0_0_20px_rgba(233,75,53,0.15)] hover:shadow-[0_0_30px_rgba(233,75,53,0.3)]"
+              >
+                <Plus className="h-4 w-4" />
+                Add Field
+              </Button>
+            </div>
           </div>
         </div>
 

@@ -27,3 +27,12 @@ export const deleteFormInput = z.object({
 
 export type DeleteFormInputType = z.infer<typeof deleteFormInput>;
 
+export const updateFormVisibilityInput = z.object({
+  formId: z.string().uuid().describe("UUID of the form"),
+  visibility: z.enum(["PUBLIC", "UNLISTED"]).describe("New visibility mode"),
+  userId: z.string().min(1).describe("ID of the user updating the form"),
+});
+
+export type UpdateFormVisibilityInputType = z.infer<typeof updateFormVisibilityInput>;
+
+

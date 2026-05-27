@@ -11,6 +11,8 @@ export const formsTable = pgTable("forms", {
 
   published: boolean("published").default(false).notNull(),
 
+  visibility: varchar("visibility", { length: 20 }).default("PUBLIC").notNull(),
+
   slug: varchar("slug", { length: 200 }).notNull().unique(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),

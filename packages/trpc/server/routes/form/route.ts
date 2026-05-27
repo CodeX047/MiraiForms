@@ -27,6 +27,10 @@ import {
   togglePublishOutputModel,
   deleteFormInputModel,
   deleteFormOutputModel,
+  updateFormVisibilityInputModel,
+  updateFormVisibilityOutputModel,
+  getFormInputModel,
+  getFormOutputModel,
 } from "./model";
 import { z } from "zod";
 
@@ -201,15 +205,46 @@ export const formRouter = router({
     })
     .input(getPublicFormInputModel)
     .output(getPublicFormOutputModel)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const form = await formService.getPublicFormBySlug(input);
       if (!form.published) {
+        if (input.preview && ctx.userId && form.createdBy === ctx.userId) {
+          return form;
+        }
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "This form is not published or does not exist",
         });
       }
       return form;
+    }),
+
+  getForm: authedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/getForm"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(getFormInputModel)
+    .output(getFormOutputModel)
+    .query(async ({ input, ctx }) => {
+      const { formId } = input;
+      await verifyFormOwnership(formId, ctx.userId);
+
+      const result = await formService.getFormById({ formId });
+      return {
+        id: result.id,
+        title: result.title,
+        description: result.description,
+        published: result.published,
+        visibility: result.visibility,
+        slug: result.slug,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+      };
     }),
 
   togglePublish: authedProcedure
@@ -254,6 +289,45 @@ export const formRouter = router({
       });
 
       return { id: result.id };
+    }),
+
+  updateFormVisibility: authedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/updateFormVisibility"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(updateFormVisibilityInputModel)
+    .output(updateFormVisibilityOutputModel)
+    .mutation(async ({ input, ctx }) => {
+      const { formId, visibility } = input;
+      await verifyFormOwnership(formId, ctx.userId);
+
+      const result = await formService.updateFormVisibility({
+        formId,
+        visibility,
+        userId: ctx.userId,
+      });
+
+      return result;
+    }),
+
+  listPublicForms: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/listPublicForms"),
+        tags: TAGS,
+      },
+    })
+    .input(z.undefined())
+    .output(listFormOutputModel)
+    .query(async () => {
+      const forms = await formService.listPublicForms();
+      return forms;
     }),
 
   submitForm: publicProcedure

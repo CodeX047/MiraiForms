@@ -16,6 +16,7 @@ export const listFormOutputModel = z
       title: z.string().describe("Title of the form"),
       description: z.string().nullable().optional().describe("Description of the form"),
       published: z.boolean().describe("Published status of the form"),
+      visibility: z.string().describe("Visibility status of the form"),
       slug: z.string().describe("Slug of the form"),
       createdAt: z.date().nullable().describe("Creation date of the form"),
       updatedAt: z.date().nullable().describe("Updation date of the form"),
@@ -25,6 +26,7 @@ export const listFormOutputModel = z
 
 export const getPublicFormInputModel = z.object({
   slug: z.string().describe("Slug of the form"),
+  preview: z.boolean().optional().describe("Preview mode for unpublished forms"),
 });
 
 export const getPublicFormOutputModel = z.object({
@@ -32,7 +34,9 @@ export const getPublicFormOutputModel = z.object({
   title: z.string().describe("Title of the form"),
   description: z.string().nullable().optional().describe("Description of the form"),
   published: z.boolean().describe("Published status of the form"),
+  visibility: z.string().describe("Visibility status of the form"),
   slug: z.string().describe("Slug of the form"),
+  createdBy: z.string().describe("Creator of the form"),
   createdAt: z.date().nullable().describe("Creation date of the form"),
   updatedAt: z.date().nullable().describe("Updation date of the form"),
   fields: z.array(
@@ -171,5 +175,30 @@ export const deleteFormInputModel = z.object({
 
 export const deleteFormOutputModel = z.object({
   id: z.string().describe("ID of the deleted form"),
+});
+
+export const updateFormVisibilityInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form"),
+  visibility: z.enum(["PUBLIC", "UNLISTED"]).describe("New visibility mode"),
+});
+
+export const updateFormVisibilityOutputModel = z.object({
+  id: z.string().describe("ID of the updated form"),
+  visibility: z.enum(["PUBLIC", "UNLISTED"]).describe("Updated visibility status"),
+});
+
+export const getFormInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form"),
+});
+
+export const getFormOutputModel = z.object({
+  id: z.string().describe("ID of the form"),
+  title: z.string().describe("Title of the form"),
+  description: z.string().nullable().optional().describe("Description of the form"),
+  published: z.boolean().describe("Published status of the form"),
+  visibility: z.string().describe("Visibility status of the form"),
+  slug: z.string().describe("Slug of the form"),
+  createdAt: z.date().nullable().describe("Creation date of the form"),
+  updatedAt: z.date().nullable().describe("Updation date of the form"),
 });
 

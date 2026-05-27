@@ -1,4 +1,4 @@
-import { db, eq, asc } from "@repo/database";
+import { db, eq, asc, and } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { formFieldsTable } from "@repo/database/models/form-field";
 import {
@@ -10,6 +10,8 @@ import {
   getFormByIdInput,
   type DeleteFormInputType,
   deleteFormInput,
+  type UpdateFormVisibilityInputType,
+  updateFormVisibilityInput,
 } from "./model";
 
 class FormService {
@@ -66,6 +68,7 @@ class FormService {
         title: formsTable.title,
         description: formsTable.description,
         published: formsTable.published,
+        visibility: formsTable.visibility,
         slug: formsTable.slug,
         createdAt: formsTable.createdAt,
         updatedAt: formsTable.updatedAt,
@@ -86,6 +89,7 @@ class FormService {
           title: formsTable.title,
           description: formsTable.description,
           published: formsTable.published,
+          visibility: formsTable.visibility,
           slug: formsTable.slug,
           createdAt: formsTable.createdAt,
           updatedAt: formsTable.updatedAt,
@@ -129,7 +133,9 @@ class FormService {
           title: formsTable.title,
           description: formsTable.description,
           published: formsTable.published,
+          visibility: formsTable.visibility,
           slug: formsTable.slug,
+          createdBy: formsTable.createdBy,
           createdAt: formsTable.createdAt,
           updatedAt: formsTable.updatedAt,
         },
@@ -219,6 +225,57 @@ class FormService {
     }
 
     return { id: result[0]!.id };
+  }
+
+  public async updateFormVisibility(payload: UpdateFormVisibilityInputType) {
+    const { formId, visibility, userId } = await updateFormVisibilityInput.parseAsync(payload);
+    
+    const [form] = await db
+      .select({ createdBy: formsTable.createdBy })
+      .from(formsTable)
+      .where(eq(formsTable.id, formId))
+      .limit(1);
+
+    if (!form) {
+      throw new Error(`Form with ID ${formId} not found`);
+    }
+
+    if (form.createdBy !== userId) {
+      throw new Error("Unauthorized to update visibility for this form");
+    }
+
+    const result = await db
+      .update(formsTable)
+      .set({ visibility })
+      .where(eq(formsTable.id, formId))
+      .returning({ id: formsTable.id, visibility: formsTable.visibility });
+
+    if (!result || result.length === 0) {
+      throw new Error("Failed to update form visibility");
+    }
+
+    return {
+      id: result[0]!.id,
+      visibility: result[0]!.visibility as "PUBLIC" | "UNLISTED",
+    };
+  }
+
+  public async listPublicForms() {
+    const forms = await db
+      .select({
+        id: formsTable.id,
+        title: formsTable.title,
+        description: formsTable.description,
+        published: formsTable.published,
+        visibility: formsTable.visibility,
+        slug: formsTable.slug,
+        createdAt: formsTable.createdAt,
+        updatedAt: formsTable.updatedAt,
+      })
+      .from(formsTable)
+      .where(and(eq(formsTable.published, true), eq(formsTable.visibility, "PUBLIC")));
+
+    return forms;
   }
 }
 

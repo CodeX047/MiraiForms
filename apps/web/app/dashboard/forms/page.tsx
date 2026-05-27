@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { useListForms, useTogglePublish } from "~/hooks/api/form";
+import { useListForms, useTogglePublish, useUpdateFormVisibility } from "~/hooks/api/form";
 import { CreateFormModal } from "~/components/create-form-modal";
 import { DeleteFormDialog } from "~/components/delete-form-dialog";
 import { Button } from "~/components/ui/button";
@@ -34,8 +34,10 @@ import {
 export default function FormsPage() {
   const { forms, isLoading, error } = useListForms();
   const { togglePublishAsync } = useTogglePublish();
+  const { updateVisibilityAsync } = useUpdateFormVisibility();
   const [searchTerm, setSearchTerm] = useState("");
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [updatingVisibilityId, setUpdatingVisibilityId] = useState<string | null>(null);
   const [deletingForm, setDeletingForm] = useState<{ id: string; title: string } | null>(null);
 
   const filteredForms =
@@ -70,6 +72,26 @@ export default function FormsPage() {
       });
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const handleUpdateVisibility = async (formId: string, newVisibility: "PUBLIC" | "UNLISTED") => {
+    setUpdatingVisibilityId(formId);
+    try {
+      await updateVisibilityAsync({ formId, visibility: newVisibility });
+      toast.success(`Form is now ${newVisibility}`, {
+        description: newVisibility === "PUBLIC"
+          ? "Form can be displayed in galleries and explore pages."
+          : "Form is hidden from galleries. Direct link only.",
+        className: "mono uppercase text-xs border border-[#E94B35] bg-[#0D0D0D] text-white rounded",
+      });
+    } catch (err: any) {
+      toast.error("Failed to update visibility", {
+        description: err?.message || "Something went wrong.",
+        className: "mono uppercase text-xs border border-[#E94B35] bg-[#0D0D0D] text-white rounded",
+      });
+    } finally {
+      setUpdatingVisibilityId(null);
     }
   };
 
@@ -280,22 +302,41 @@ export default function FormsPage() {
 
                       {/* Publish Toggle Column */}
                       <TableCell className="align-middle py-4">
-                        <div className="flex items-center gap-3">
-                          <Switch
-                            checked={isPublished}
-                            disabled={isCurrentlyToggling}
-                            onCheckedChange={() => handleTogglePublish(form.id, isPublished)}
-                            className="data-[state=checked]:bg-[#22c55e] data-[state=unchecked]:bg-neutral-800 border border-white/10"
-                          />
-                          <span
-                            className={`text-[10px] font-bold mono uppercase tracking-wider ${
-                              isPublished
-                                ? "text-[#22c55e] drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]"
-                                : "text-[#E94B35] opacity-80"
-                            }`}
-                          >
-                            {isPublished ? "PUBLISHED" : "OFFLINE"}
-                          </span>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-3">
+                            <Switch
+                              checked={isPublished}
+                              disabled={isCurrentlyToggling}
+                              onCheckedChange={() => handleTogglePublish(form.id, isPublished)}
+                              className="data-[state=checked]:bg-[#22c55e] data-[state=unchecked]:bg-neutral-800 border border-white/10"
+                            />
+                            <span
+                              className={`text-[10px] font-bold mono uppercase tracking-wider ${
+                                isPublished
+                                  ? "text-[#22c55e] drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]"
+                                  : "text-[#E94B35] opacity-80"
+                              }`}
+                            >
+                              {isPublished ? "PUBLISHED" : "OFFLINE"}
+                            </span>
+                          </div>
+                          {isPublished && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[9px] mono text-[#6E6E6E] uppercase">Mode:</span>
+                              <select
+                                value={form.visibility}
+                                disabled={updatingVisibilityId === form.id}
+                                onChange={(e) => handleUpdateVisibility(form.id, e.target.value as "PUBLIC" | "UNLISTED")}
+                                className="bg-[#0D0D0D] border border-white/10 hover:border-white/20 focus:border-[#E94B35]/50 text-white rounded text-[9px] mono px-1.5 py-0.5 outline-none transition-all cursor-pointer"
+                              >
+                                <option value="PUBLIC" className="bg-[#0D0D0D] text-white">PUBLIC</option>
+                                <option value="UNLISTED" className="bg-[#0D0D0D] text-white">UNLISTED</option>
+                              </select>
+                              {updatingVisibilityId === form.id && (
+                                <RefreshCw className="h-2.5 w-2.5 animate-spin text-[#E94B35]" />
+                              )}
+                            </div>
+                          )}
                         </div>
                       </TableCell>
 

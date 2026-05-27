@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   CheckCircle,
   RefreshCw,
@@ -28,7 +28,15 @@ type ResponsesState = Record<string, string>;
 
 export default function PublicFormPage() {
   const { slug } = useParams() as { slug: string };
-  const { form, isLoading, error } = useGetPublicForm(slug);
+  const searchParams = useSearchParams();
+  const isPreview = searchParams.get("preview") === "true";
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const { form, isLoading, error } = useGetPublicForm(slug, isPreview, mounted);
   const { submitFormAsync, status: submitStatus } = useSubmitForm();
 
   const [responses, setResponses] = useState<ResponsesState>({});
@@ -98,6 +106,15 @@ export default function PublicFormPage() {
       return;
     }
 
+    if (isPreview) {
+      setIsSubmitted(true);
+      toast.success("SIMULATED_TRANSMISSION_SUCCESS", {
+        description: "Preview submission successful (data not saved).",
+        className: "mono uppercase text-xs border border-[#22c55e] bg-[#0D0D0D] text-white rounded",
+      });
+      return;
+    }
+
     const responsePayload = Object.entries(responses).map(([formFieldId, value]) => ({
       formFieldId,
       value,
@@ -122,7 +139,7 @@ export default function PublicFormPage() {
     }
   };
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
@@ -137,7 +154,7 @@ export default function PublicFormPage() {
   }
 
   // Render branded offline gate if unpublished/not found (throws TRPCError(NOT_FOUND))
-  if (error || !form || !form.published) {
+  if (error || !form || (!form.published && !isPreview)) {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6 relative overflow-hidden selection:bg-[#E94B35] selection:text-white">
         {/* Subtle scanline and grid background overlay */}
@@ -194,8 +211,15 @@ export default function PublicFormPage() {
       <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0 fixed" />
       <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0 fixed" />
 
+      {isPreview && (
+        <div className="bg-[#E94B35] text-white py-2 px-4 text-center text-xs font-bold uppercase tracking-widest mono sticky top-0 z-50 flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(233,75,53,0.3)] border-b border-[#FF3B30]">
+          <Info className="h-4 w-4 animate-pulse shrink-0" />
+          <span>DRAFT_PREVIEW: Submissions are simulated for testing.</span>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#080808]/80 backdrop-blur-md">
+      <header className={`sticky ${isPreview ? "top-8" : "top-0"} z-40 border-b border-white/10 bg-[#080808]/80 backdrop-blur-md transition-all`}>
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold tracking-widest uppercase mono text-white">

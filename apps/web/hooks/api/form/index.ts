@@ -146,7 +146,7 @@ export const useDeleteFeild = (formId: string) => {
   };
 };
 
-export const useGetPublicForm = (slug: string) => {
+export const useGetPublicForm = (slug: string, preview?: boolean, enabled?: boolean) => {
   const {
     data: form,
     error,
@@ -154,7 +154,20 @@ export const useGetPublicForm = (slug: string) => {
     isFetching,
     isLoading,
     status,
-  } = trpc.form.getPublicForm.useQuery({ slug });
+  } = trpc.form.getPublicForm.useQuery({ slug, preview }, { enabled });
+
+  return { form, error, isFetched, isFetching, isLoading, status };
+};
+
+export const useGetForm = (formId: string) => {
+  const {
+    data: form,
+    error,
+    isFetched,
+    isFetching,
+    isLoading,
+    status,
+  } = trpc.form.getForm.useQuery({ formId });
 
   return { form, error, isFetched, isFetching, isLoading, status };
 };
@@ -255,4 +268,35 @@ export const useDeleteForm = () => {
     status,
   };
 };
+
+export const useUpdateFormVisibility = () => {
+  const utils = trpc.useUtils();
+
+  const {
+    mutateAsync: updateVisibilityAsync,
+    mutate: updateVisibility,
+    error,
+    failureCount,
+    isError,
+    isIdle,
+    isSuccess,
+    status,
+  } = trpc.form.updateFormVisibility.useMutation({
+    onSuccess: async () => {
+      await utils.form.listForms.invalidate();
+    },
+  });
+
+  return {
+    updateVisibilityAsync,
+    updateVisibility,
+    error,
+    failureCount,
+    isError,
+    isIdle,
+    isSuccess,
+    status,
+  };
+};
+
 
