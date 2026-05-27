@@ -154,7 +154,14 @@ export const useGetPublicForm = (slug: string, preview?: boolean, enabled?: bool
     isFetching,
     isLoading,
     status,
-  } = trpc.form.getPublicForm.useQuery({ slug, preview }, { enabled });
+  } = trpc.form.getPublicForm.useQuery(
+    { slug, preview },
+    {
+      enabled,
+      retry: 2,
+      retryDelay: 1500,
+    },
+  );
 
   return { form, error, isFetched, isFetching, isLoading, status };
 };

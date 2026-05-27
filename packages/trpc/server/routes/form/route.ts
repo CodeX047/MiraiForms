@@ -207,17 +207,31 @@ export const formRouter = router({
     .input(getPublicFormInputModel)
     .output(getPublicFormOutputModel)
     .query(async ({ input, ctx }) => {
-      const form = await formService.getPublicFormBySlug(input);
-      if (!form.published) {
-        if (input.preview && ctx.userId && form.createdBy === ctx.userId) {
-          return form;
+      console.log(`[getPublicForm] Request received — slug: "${input.slug}", preview: ${input.preview ?? false}, userId: ${ctx.userId ?? "anonymous"}`);
+      try {
+        const form = await formService.getPublicFormBySlug(input);
+        console.log(`[getPublicForm] DB result — formId: ${form.id}, published: ${form.published}, fieldsCount: ${form.fields?.length ?? 0}`);
+        if (!form.published) {
+          if (input.preview && ctx.userId && form.createdBy === ctx.userId) {
+            console.log(`[getPublicForm] Serving preview for owner`);
+            return form;
+          }
+          console.log(`[getPublicForm] Form not published, returning NOT_FOUND`);
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "This form is not published or does not exist",
+          });
         }
+        console.log(`[getPublicForm] Success — returning form "${form.title}"`);
+        return form;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error(`[getPublicForm] Unexpected error for slug "${input.slug}":`, error);
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "This form is not published or does not exist",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch form",
         });
       }
-      return form;
     }),
 
   getForm: authedProcedure

@@ -42,9 +42,20 @@ openApiDocument.components = {
 // Enable testing of protected operations in Scalar interactive client
 openApiDocument.security = [{ bearerAuth: [] }, { cookieAuth: [] }];
 
+const allowedOrigins = env.FRONTEND_URL.split(",").map((s) => s.trim()).filter(Boolean);
+logger.info(`CORS allowed origins: ${JSON.stringify(allowedOrigins)}`);
+
 app.use(
   cors({
-    origin: env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (server-to-server, mobile, curl, health checks)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        logger.warn(`CORS blocked request from origin: ${origin}`);
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true,
   }),
 );
