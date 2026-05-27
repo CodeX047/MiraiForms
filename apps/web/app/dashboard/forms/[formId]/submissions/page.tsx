@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
@@ -13,6 +13,11 @@ import {
   Database,
   Clock,
   Terminal,
+  Users,
+  TrendingUp,
+  Gauge,
+  Monitor,
+  Compass,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,6 +25,23 @@ import { useGetFeilds, useGetFormSubmissions, useListForms } from "~/hooks/api/f
 import { Button } from "~/components/ui/button";
 import { calculateMetrics } from "~/lib/analytics/calculate-metrics";
 import { formatDuration } from "~/lib/analytics/format-duration";
+import { parseUserAgent, safePercent } from "~/lib/analytics/telemetry-utils";
+import {
+  getBrowserData,
+  getDeviceData,
+  getFunnelData,
+  getResponseTrend,
+  getTimeDistribution,
+} from "~/lib/analytics/chart-transformers";
+
+// Custom Cyberpunk Analytics Components
+import { AnalyticsCard } from "~/components/analytics/analytics-card";
+import { ResponseTrendChart } from "~/components/analytics/response-trend-chart";
+import { CompletionFunnelChart } from "~/components/analytics/completion-funnel-chart";
+import { DeviceChart } from "~/components/analytics/device-chart";
+import { BrowserChart } from "~/components/analytics/browser-chart";
+import { CompletionDistributionChart } from "~/components/analytics/completion-distribution-chart";
+
 import {
   Table,
   TableHeader,
@@ -29,36 +51,6 @@ import {
   TableCell,
 } from "~/components/ui/table";
 
-// Helper function to simplify user-agent parsing
-function parseUserAgent(uaStr: string | null | undefined): string {
-  if (!uaStr) return "Unknown / Device";
-  
-  const ua = uaStr.toLowerCase();
-  let browser = "Unknown";
-  let os = "Unknown";
-
-  if (ua.includes("chrome") || ua.includes("chromium")) {
-    if (ua.includes("edg")) browser = "Edge";
-    else if (ua.includes("opr") || ua.includes("opera")) browser = "Opera";
-    else browser = "Chrome";
-  } else if (ua.includes("safari")) {
-    if (ua.includes("chrome")) browser = "Chrome";
-    else browser = "Safari";
-  } else if (ua.includes("firefox")) {
-    browser = "Firefox";
-  } else if (ua.includes("msie") || ua.includes("trident")) {
-    browser = "IE";
-  }
-
-  if (ua.includes("windows")) os = "Windows";
-  else if (ua.includes("macintosh") || ua.includes("mac os")) os = "macOS";
-  else if (ua.includes("android")) os = "Android";
-  else if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("ipod")) os = "iOS";
-  else if (ua.includes("linux")) os = "Linux";
-
-  return `${browser} / ${os}`;
-}
-
 export default function FormSubmissionsPage() {
   const { formId } = useParams() as { formId: string };
 
@@ -66,9 +58,14 @@ export default function FormSubmissionsPage() {
   const { feilds, isLoading: loadingFields, error: errorFields } = useGetFeilds(formId);
   const { submissions, isLoading: loadingSubmissions, error: errorSubmissions } = useGetFormSubmissions(formId);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const formDetails = forms?.find((f) => f.id === formId);
 
-  const isLoading = loadingFields || loadingSubmissions;
+  const isLoading = !mounted || loadingFields || loadingSubmissions;
   const isError = errorFields || errorSubmissions;
 
   // Aggregate Stats using production-grade utilities
@@ -78,6 +75,33 @@ export default function FormSubmissionsPage() {
   const lastSubmissionDate = submissions && submissions.length > 0
     ? new Date(submissions[0]!.createdAt)
     : null;
+
+  // 1. Calculate Today & Weekly signals
+  let responsesToday = 0;
+  let responsesThisWeek = 0;
+
+  if (submissions) {
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+    submissions.forEach((sub) => {
+      const subTime = new Date(sub.createdAt).getTime();
+      if (subTime >= oneDayAgo) responsesToday++;
+      if (subTime >= sevenDaysAgo) responsesThisWeek++;
+    });
+  }
+
+  // 2. Conversion & Funnel stats
+  const funnelData = getFunnelData(totalSubmissions);
+  const conversionRate = totalSubmissions > 0 ? funnelData[2]!.percentage : 0;
+  const dropoffRate = totalSubmissions > 0 ? 100 - conversionRate : 0;
+
+  // 3. Chart data calculations
+  const trendData = getResponseTrend(submissions);
+  const deviceData = getDeviceData(submissions);
+  const browserData = getBrowserData(submissions);
+  const timeDistData = getTimeDistribution(submissions);
 
   const handleExportCSV = () => {
     if (!submissions || submissions.length === 0 || !feilds || feilds.length === 0) {
@@ -90,7 +114,8 @@ export default function FormSubmissionsPage() {
     
     const rows = submissions.map((sub) => {
       const timestamp = new Date(sub.createdAt).toLocaleString();
-      const device = parseUserAgent(sub.metadata?.userAgent);
+      const deviceObj = parseUserAgent(sub.metadata?.userAgent);
+      const device = `${deviceObj.browser} / ${deviceObj.os}`;
       
       const values = feilds.map((field) => {
         const responseVal = sub.responses?.find((r) => r.formFieldId === field.id)?.value || "";
@@ -178,7 +203,7 @@ export default function FormSubmissionsPage() {
                 FEED: <span className="text-white">{formDetails?.title || "Retrieving info..."}</span>
               </p>
             </div>
-            {submissions && submissions.length > 0 && (
+            {submissions && submissions.length > 0 && !isLoading && (
               <Button
                 onClick={handleExportCSV}
                 className="gap-2 bg-[#080808] border border-[#E94B35] text-white hover:bg-[#E94B35] transition-all cursor-pointer font-bold mono text-xs uppercase tracking-wider rounded px-5 py-2.5 shadow-[0_0_20px_rgba(233,75,53,0.15)]"
@@ -190,95 +215,85 @@ export default function FormSubmissionsPage() {
           </div>
         </div>
 
-        {/* Telemetry Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Card 1: Total Submissions */}
-          <div className="rounded border border-white/10 bg-[#0D0D0D] p-6 shadow-xl relative overflow-hidden group hover:border-[#E94B35]/30 transition-colors">
-            <div className="absolute top-0 right-0 p-4 opacity-5 text-white">
-              <Database className="h-20 w-20" />
-            </div>
-            <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest block mb-2">
-              RECORDED_ENTRIES
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold text-white mono drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">
-                {isLoading ? "--" : totalSubmissions}
-              </span>
-              <span className="text-xs mono text-[#6E6E6E]">signals</span>
-            </div>
-          </div>
-
-          {/* Card 2: Average Completion Time */}
-          <div className="rounded border border-white/10 bg-[#0D0D0D] p-6 shadow-xl relative group hover:border-[#E94B35]/30 transition-colors">
-            <div className="absolute top-0 right-0 p-4 opacity-5 text-white pointer-events-none">
-              <Clock className="h-20 w-20" />
-            </div>
-            
-            <div className="relative inline-block group/tooltip mb-2">
-              <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest cursor-help border-b border-dashed border-white/20 pb-0.5 select-none">
-                AVG_COMPLETION_TIME
-              </span>
-              
-              {/* Premium cyberpunk tooltip */}
-              <div className="absolute bottom-full left-0 mb-2 w-52 scale-95 opacity-0 pointer-events-none group-hover/tooltip:scale-100 group-hover/tooltip:opacity-100 transition-all duration-200 z-50 rounded border border-white/10 bg-[#080808] p-2.5 shadow-2xl text-[10px] mono text-[#A0A0A0] leading-relaxed">
-                <span className="text-white font-bold block mb-1">TELEMETRY METRIC</span>
-                Average time users take to complete this form.
-                <div className="absolute top-full left-4 -mt-[1px] border-4 border-transparent border-t-[#080808] z-50" />
-              </div>
-            </div>
-
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold text-white mono drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">
-                {isLoading ? (
-                  "--"
-                ) : metrics.average !== null ? (
-                  formatDuration(metrics.average)
-                ) : (
-                  <span className="text-[16px] font-extrabold text-[#E94B35]/70 tracking-wider uppercase">NO TELEMETRY DATA</span>
-                )}
-              </span>
-              {!isLoading && metrics.average !== null && (
-                <span className="text-xs mono text-[#6E6E6E]">per completion</span>
-              )}
-            </div>
-
-            {/* Premium sub-metrics block */}
-            {!isLoading && metrics.validCount > 0 && (
-              <div className="mt-4 pt-3 border-t border-white/5 grid grid-cols-3 gap-2 text-[10px] mono text-[#6E6E6E] relative z-10">
-                <div>
-                  <span className="block text-[8px] text-[#6E6E6E]/60 uppercase tracking-wider mb-0.5">Min</span>
-                  <span className="text-white font-semibold">{formatDuration(metrics.min!)}</span>
-                </div>
-                <div>
-                  <span className="block text-[8px] text-[#6E6E6E]/60 uppercase tracking-wider mb-0.5">Median</span>
-                  <span className="text-white font-semibold">{formatDuration(metrics.median!)}</span>
-                </div>
-                <div>
-                  <span className="block text-[8px] text-[#6E6E6E]/60 uppercase tracking-wider mb-0.5">Max</span>
-                  <span className="text-white font-semibold">{formatDuration(metrics.max!)}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Card 3: Last Submission Received */}
-          <div className="rounded border border-white/10 bg-[#0D0D0D] p-6 shadow-xl relative overflow-hidden group hover:border-[#E94B35]/30 transition-colors">
-            <div className="absolute top-0 right-0 p-4 opacity-5 text-white">
-              <Calendar className="h-20 w-20" />
-            </div>
-            <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest block mb-2">
-              LAST_SIGNAL_DETECTED
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-extrabold text-white mono tracking-wide drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] truncate max-w-full">
-                {isLoading ? "--" : lastSubmissionDate ? formatDate(lastSubmissionDate) : "OFFLINE"}
-              </span>
-            </div>
-          </div>
+        {/* 1. Telemetry Summary Cards (6-Column Cyberpunk Grid) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5 mb-8">
+          <AnalyticsCard
+            title="Total Entries"
+            value={isLoading ? "--" : totalSubmissions}
+            unit="signals"
+            icon={<Database className="h-4 w-4" />}
+            description="Active database logs"
+            loading={isLoading}
+            statusColor="green"
+          />
+          <AnalyticsCard
+            title="Conv Rate"
+            value={isLoading ? "--" : `${conversionRate}%`}
+            unit=""
+            icon={<TrendingUp className="h-4 w-4" />}
+            description="Session completion"
+            loading={isLoading}
+            statusColor="green"
+          />
+          <AnalyticsCard
+            title="Avg Pace"
+            value={isLoading ? "--" : metrics.average !== null ? formatDuration(metrics.average) : "0s"}
+            unit=""
+            icon={<Clock className="h-4 w-4" />}
+            description="Mean submission time"
+            loading={isLoading}
+            statusColor="blue"
+          />
+          <AnalyticsCard
+            title="Median Pace"
+            value={isLoading ? "--" : metrics.median !== null ? formatDuration(metrics.median) : "0s"}
+            unit=""
+            icon={<Gauge className="h-4 w-4" />}
+            description="Median submission time"
+            loading={isLoading}
+            statusColor="neutral"
+          />
+          <AnalyticsCard
+            title="Entries 24h"
+            value={isLoading ? "--" : responsesToday}
+            unit="signals"
+            icon={<Calendar className="h-4 w-4" />}
+            description="Past 24 hours"
+            loading={isLoading}
+            statusColor="red"
+          />
+          <AnalyticsCard
+            title="Entries 7d"
+            value={isLoading ? "--" : responsesThisWeek}
+            unit="signals"
+            icon={<Calendar className="h-4 w-4" />}
+            description="Past 7 days"
+            loading={isLoading}
+            statusColor="red"
+          />
         </div>
 
-        {/* Responses Grid Table */}
-        <div className="rounded border border-white/10 bg-[#0D0D0D] shadow-2xl overflow-hidden">
+        {/* 2. Interactive Evil Charts (Primary 2-Column Grid) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <ResponseTrendChart data={trendData} loading={isLoading} />
+          <CompletionFunnelChart data={funnelData} loading={isLoading} />
+        </div>
+
+        {/* 3. Sub-Insights Charts (Secondary 3-Column Grid) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <DeviceChart data={deviceData} loading={isLoading} />
+          <BrowserChart data={browserData} loading={isLoading} />
+          <CompletionDistributionChart data={timeDistData} loading={isLoading} />
+        </div>
+
+        {/* 4. Responses Grid Table */}
+        <div className="rounded border border-white/10 bg-[#0D0D0D]/60 backdrop-blur-md shadow-2xl overflow-hidden">
+          <div className="border-b border-white/10 px-5 py-4 flex items-center justify-between bg-white/2">
+            <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest font-bold">
+              DATAFEED_STREAM_RECORDS
+            </span>
+          </div>
+
           {isLoading ? (
             /* Loading State */
             <div className="p-12 space-y-4">
@@ -338,41 +353,44 @@ export default function FormSubmissionsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {submissions.map((sub) => (
-                    <TableRow
-                      key={sub.id}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
-                    >
-                      {/* Timestamp Column */}
-                      <TableCell className="py-4 text-[#6E6E6E] text-xs mono whitespace-nowrap font-light">
-                        {new Date(sub.createdAt).toLocaleString()}
-                      </TableCell>
+                  {submissions.map((sub) => {
+                    const parsedUA = parseUserAgent(sub.metadata?.userAgent);
+                    return (
+                      <TableRow
+                        key={sub.id}
+                        className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      >
+                        {/* Timestamp Column */}
+                        <TableCell className="py-4 text-[#6E6E6E] text-xs mono whitespace-nowrap font-light">
+                          {new Date(sub.createdAt).toLocaleString()}
+                        </TableCell>
 
-                      {/* User Agent / OS Column */}
-                      <TableCell className="py-4 text-white text-xs mono whitespace-nowrap">
-                        <span className="px-2 py-1 rounded bg-white/5 text-[10px] text-neutral-400 border border-white/5">
-                          {parseUserAgent(sub.metadata?.userAgent)}
-                        </span>
-                      </TableCell>
+                        {/* User Agent / OS Column */}
+                        <TableCell className="py-4 text-white text-xs mono whitespace-nowrap">
+                          <span className="px-2 py-1 rounded bg-white/5 text-[10px] text-neutral-400 border border-white/5">
+                            {parsedUA.browser} / {parsedUA.os} ({parsedUA.device})
+                          </span>
+                        </TableCell>
 
-                      {/* Dynamic Field Values */}
-                      {feilds?.map((field) => {
-                        const response = sub.responses?.find((r) => r.formFieldId === field.id);
-                        return (
-                          <TableCell
-                            key={field.id}
-                            className="py-4 text-white/90 text-xs mono whitespace-nowrap font-light"
-                          >
-                            {response ? (
-                              response.value
-                            ) : (
-                              <span className="text-[#6E6E6E]/40 italic">-</span>
-                            )}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
+                        {/* Dynamic Field Values */}
+                        {feilds?.map((field) => {
+                          const response = sub.responses?.find((r) => r.formFieldId === field.id);
+                          return (
+                            <TableCell
+                              key={field.id}
+                              className="py-4 text-white/90 text-xs mono whitespace-nowrap font-light"
+                            >
+                              {response ? (
+                                response.value
+                              ) : (
+                                <span className="text-[#6E6E6E]/40 italic">-</span>
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
