@@ -299,4 +299,18 @@ export const useUpdateFormVisibility = () => {
   };
 };
 
+export const useListPublicForms = () => {
+  const {
+    data: forms,
+    error,
+    isFetched,
+    isFetching,
+    isLoading,
+    status,
+  } = trpc.form.listPublicForms.useQuery();
+
+  return { forms, error, isFetched, isFetching, isLoading, status };
+};
+
+
 

@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { Button } from "~/components/ui/button";
 import {
   Gamepad2,
   Briefcase,
@@ -162,7 +164,6 @@ export function TemplatesShowcase() {
           })}
         </div>
 
-        {/* View All CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -170,9 +171,15 @@ export function TemplatesShowcase() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="mt-8 md:mt-12 text-center"
         >
-          <button className="mono text-[#6E6E6E] flex items-center justify-center gap-2 mx-auto group text-sm">
-            More templates arriving soon
-          </button>
+          <Link href="/explore">
+            <Button
+              variant="outline"
+              className="mono text-[#E94B35] hover:text-white border-white/10 hover:border-[#E94B35]/40 bg-transparent flex items-center justify-center gap-2 mx-auto group text-xs uppercase font-bold py-3 px-6 cursor-pointer rounded"
+            >
+              Browse Full Explore Gallery
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
         </motion.div>
       </div>
 
