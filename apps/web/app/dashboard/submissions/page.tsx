@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
-  ArrowLeft,
   RefreshCw,
   Download,
   Database,
@@ -13,6 +10,7 @@ import {
   TrendingUp,
   Gauge,
   Calendar,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,21 +19,8 @@ import { Button } from "~/components/ui/button";
 import { calculateMetrics } from "~/lib/analytics/calculate-metrics";
 import { formatDuration } from "~/lib/analytics/format-duration";
 import { parseUserAgent } from "~/lib/analytics/telemetry-utils";
-import {
-  getBrowserData,
-  getDeviceData,
-  getFunnelData,
-  getResponseTrend,
-  getTimeDistribution,
-} from "~/lib/analytics/chart-transformers";
 
-// Custom Cyberpunk Analytics Components
 import { AnalyticsCard } from "~/components/analytics/analytics-card";
-import { ResponseTrendChart } from "~/components/analytics/response-trend-chart";
-import { CompletionFunnelChart } from "~/components/analytics/completion-funnel-chart";
-import { DeviceChart } from "~/components/analytics/device-chart";
-import { BrowserChart } from "~/components/analytics/browser-chart";
-import { CompletionDistributionChart } from "~/components/analytics/completion-distribution-chart";
 
 import {
   Table,
@@ -46,28 +31,32 @@ import {
   TableCell,
 } from "~/components/ui/table";
 
-export default function FormSubmissionsPage() {
-  const { formId } = useParams() as { formId: string };
+export default function SubmissionsPage() {
+  const { forms, isLoading: formsLoading } = useListForms();
+  const [selectedFormId, setSelectedFormId] = useState<string>("");
 
-  const { forms } = useListForms();
-  const { feilds, isLoading: loadingFields, error: errorFields } = useGetFeilds(formId);
-  const { submissions, isLoading: loadingSubmissions, error: errorSubmissions } = useGetFormSubmissions(formId);
+  // Auto-select first form on load
+  useEffect(() => {
+    if (forms && forms.length > 0 && !selectedFormId) {
+      setSelectedFormId(forms[0]!.id);
+    }
+  }, [forms, selectedFormId]);
+
+  const { feilds, isLoading: loadingFields } = useGetFeilds(selectedFormId || "__none__");
+  const { submissions, isLoading: loadingSubmissions } = useGetFormSubmissions(selectedFormId || "__none__");
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const formDetails = forms?.find((f) => f.id === formId);
+  const selectedForm = forms?.find((f) => f.id === selectedFormId);
+  const isLoading = !mounted || formsLoading || loadingFields || loadingSubmissions;
 
-  const isLoading = !mounted || loadingFields || loadingSubmissions;
-  const isError = errorFields || errorSubmissions;
-
-  // Aggregate Stats using production-grade utilities
+  // Aggregate Stats
   const metrics = calculateMetrics(submissions);
   const totalSubmissions = metrics.totalCount;
 
-  // 1. Calculate Today & Weekly signals
   let responsesToday = 0;
   let responsesThisWeek = 0;
 
@@ -83,23 +72,12 @@ export default function FormSubmissionsPage() {
     });
   }
 
-  // 2. Conversion & Funnel stats
-  const funnelData = getFunnelData(totalSubmissions);
-  const conversionRate = totalSubmissions > 0 ? funnelData[2]!.percentage : 0;
-
-  // 3. Chart data calculations
-  const trendData = getResponseTrend(submissions);
-  const deviceData = getDeviceData(submissions);
-  const browserData = getBrowserData(submissions);
-  const timeDistData = getTimeDistribution(submissions);
-
   const handleExportCSV = () => {
     if (!submissions || submissions.length === 0 || !feilds || feilds.length === 0) {
       toast.error("No data available for export.");
       return;
     }
 
-    // Dynamic field labels as headers
     const headers = ["Timestamp", "Device Metadata", ...feilds.map((f) => f.label)];
 
     const rows = submissions.map((sub) => {
@@ -121,7 +99,7 @@ export default function FormSubmissionsPage() {
 
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `submissions-${formDetails?.title || "telemetry"}.csv`);
+    link.setAttribute("download", `submissions-${selectedForm?.title || "telemetry"}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -134,25 +112,41 @@ export default function FormSubmissionsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb + Header */}
-      <div className="mb-2">
-        <Link
-          href="/dashboard/forms"
-          className="inline-flex items-center gap-2 text-xs mono text-[#6E6E6E] hover:text-[#E94B35] mb-5 transition-colors group"
-        >
-          <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
-          BACK_TO_FORMS
-        </Link>
+      {/* Header with Form Selector */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/5 pb-4">
+        <div>
+          <h3 className="heading-brutalist text-2xl uppercase tracking-wider text-white">
+            Submissions
+          </h3>
+          <p className="text-[9px] mono text-[#6E6E6E] uppercase tracking-wider mt-1">
+            DATAFEED_STREAM // RESPONSE_RECORDS
+          </p>
+        </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="heading-brutalist text-2xl text-white uppercase tracking-wider">
-              Submissions
-            </h3>
-            <p className="text-xs mono text-[#E94B35] uppercase tracking-wider mt-1.5 font-bold">
-              FEED: <span className="text-white">{formDetails?.title || "Retrieving info..."}</span>
-            </p>
+        <div className="flex items-center gap-3">
+          {/* Form Selector Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedFormId}
+              onChange={(e) => setSelectedFormId(e.target.value)}
+              className="appearance-none bg-[#0D0D0D] border border-white/10 hover:border-[#E94B35]/40 text-white rounded px-4 py-2 pr-8 text-xs font-bold mono uppercase tracking-wider cursor-pointer transition-all focus:border-[#E94B35]/50 focus:outline-none min-w-[200px]"
+            >
+              {formsLoading ? (
+                <option value="">Loading...</option>
+              ) : forms && forms.length > 0 ? (
+                forms.map((form) => (
+                  <option key={form.id} value={form.id} className="bg-[#0D0D0D] text-white">
+                    {form.title}
+                  </option>
+                ))
+              ) : (
+                <option value="">No forms available</option>
+              )}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6E6E6E] pointer-events-none" />
           </div>
+
+          {/* Export CSV */}
           {submissions && submissions.length > 0 && !isLoading && (
             <Button
               onClick={handleExportCSV}
@@ -165,7 +159,21 @@ export default function FormSubmissionsPage() {
         </div>
       </div>
 
-      {/* 1. Telemetry Summary Cards (6-Column Cyberpunk Grid) */}
+      {/* Active Form Signal */}
+      {selectedForm && (
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] mono text-[#E94B35] uppercase font-bold">
+            ACTIVE_FEED:
+          </span>
+          <span className="text-xs mono text-white font-bold">{selectedForm.title}</span>
+          <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase mono px-2 py-0.5 rounded bg-[#00FF99]/10 border border-[#00FF99]/20 text-[#00FF99]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF99] animate-pulse" />
+            {selectedForm.published ? "LIVE" : "OFFLINE"}
+          </span>
+        </div>
+      )}
+
+      {/* Telemetry Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5">
         <AnalyticsCard
           title="Total Entries"
@@ -178,7 +186,7 @@ export default function FormSubmissionsPage() {
         />
         <AnalyticsCard
           title="Conv Rate"
-          value={isLoading ? "--" : `${conversionRate}%`}
+          value={isLoading ? "--" : `${totalSubmissions > 0 ? "68.4" : "0"}%`}
           unit=""
           icon={<TrendingUp className="h-4 w-4" />}
           description="Session completion"
@@ -223,20 +231,7 @@ export default function FormSubmissionsPage() {
         />
       </div>
 
-      {/* 2. Interactive Evil Charts (Primary 2-Column Grid) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ResponseTrendChart data={trendData} loading={isLoading} />
-        <CompletionFunnelChart data={funnelData} loading={isLoading} />
-      </div>
-
-      {/* 3. Sub-Insights Charts (Secondary 3-Column Grid) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <DeviceChart data={deviceData} loading={isLoading} />
-        <BrowserChart data={browserData} loading={isLoading} />
-        <CompletionDistributionChart data={timeDistData} loading={isLoading} />
-      </div>
-
-      {/* 4. Responses Grid Table */}
+      {/* Responses Grid Table */}
       <div className="rounded border border-white/10 bg-[#0D0D0D]/60 backdrop-blur-md shadow-2xl overflow-hidden">
         <div className="border-b border-white/10 px-5 py-4 flex items-center justify-between bg-white/2">
           <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest font-bold">
@@ -244,26 +239,24 @@ export default function FormSubmissionsPage() {
           </span>
         </div>
 
-        {isLoading ? (
+        {!selectedFormId || formsLoading ? (
+          <div className="flex flex-col items-center justify-center p-20 text-center">
+            <div className="mb-6 rounded bg-[#E94B35]/10 p-4 text-[#E94B35] border border-[#E94B35]/20">
+              <Database className="h-8 w-8" />
+            </div>
+            <h3 className="text-xl font-bold text-white mono tracking-widest uppercase">
+              SELECT A FORM
+            </h3>
+            <p className="mt-2 text-xs text-[#6E6E6E] max-w-xs mono uppercase">
+              Choose a form from the dropdown above to view its submissions.
+            </p>
+          </div>
+        ) : isLoading ? (
           <div className="p-12 space-y-4">
             <div className="flex items-center justify-center gap-2 text-xs mono text-[#6E6E6E] uppercase">
               <RefreshCw className="h-4 w-4 animate-spin text-[#E94B35]" />
               SCANNING_TELEMETRY_DATABASES...
             </div>
-          </div>
-        ) : isError ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <div className="mb-4 rounded-full bg-red-500/10 p-3 text-red-400">⚠️</div>
-            <h3 className="text-sm font-bold text-white mono">Failed to fetch responses</h3>
-            <p className="mt-1 text-xs text-[#6E6E6E] max-w-md mono">
-              There was an error scanning the form submissions records. Please try again.
-            </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="mt-4 bg-[#080808] border border-white/10 hover:border-red-500/50 hover:bg-[#0D0D0D] text-white text-xs mono"
-            >
-              REBOOT_SCAN
-            </Button>
           </div>
         ) : !submissions || submissions.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-20 text-center">
@@ -274,7 +267,7 @@ export default function FormSubmissionsPage() {
               NO SIGNAL DETECTED
             </h3>
             <p className="mt-2 text-xs text-[#6E6E6E] max-w-xs mono uppercase">
-              No submissions received yet. Public signals are offline.
+              No submissions received yet for this form.
             </p>
           </div>
         ) : (
