@@ -12,6 +12,8 @@ import { serverRouter, createContext } from "@repo/trpc/server";
 import { env } from "./env";
 
 export const app = express();
+app.set("trust proxy", 1);
+
 const openApiDocument = generateOpenApiDocument(serverRouter, {
   title: "Mirai Forms Platform",
   version: "1.0.0",
@@ -20,7 +22,7 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: env.FRONTEND_URL,
     credentials: true,
   }),
 );
