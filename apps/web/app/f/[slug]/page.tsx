@@ -8,6 +8,7 @@ import {
   AlertCircle,
   ArrowRight,
   Info,
+  Terminal,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,6 +44,16 @@ export default function PublicFormPage() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [startTime] = useState<number>(() => Date.now());
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+
+  useEffect(() => {
+    if (form?.id) {
+      const submitted = localStorage.getItem(`submitted_${form.id}`);
+      if (submitted === "true") {
+        setAlreadySubmitted(true);
+      }
+    }
+  }, [form?.id]);
 
   const isSubmitting = submitStatus === "pending";
 
@@ -131,6 +142,9 @@ export default function PublicFormPage() {
       });
 
       setIsSubmitted(true);
+      if (form?.id) {
+        localStorage.setItem(`submitted_${form.id}`, "true");
+      }
       toast.success("Response submitted successfully!");
     } catch (err: any) {
       toast.error("Failed to submit form", {
@@ -148,6 +162,33 @@ export default function PublicFormPage() {
           <p className="mono text-xs text-[#6E6E6E] uppercase tracking-widest">
             ESTABLISHING_LINK...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (alreadySubmitted && !isPreview) {
+    return (
+      <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6 relative overflow-hidden selection:bg-[#E94B35] selection:text-white">
+        {/* Subtle scanline and grid background overlay */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
+        <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0" />
+        
+        <div className="relative z-10 w-full max-w-md border border-[#E94B35]/30 bg-[#0D0D0D] p-8 text-center rounded shadow-[0_0_50px_rgba(233,75,53,0.15)] select-none">
+          <div className="mx-auto mb-6 rounded bg-[#E94B35]/10 p-4 text-[#E94B35] border border-[#E94B35]/20 w-fit animate-pulse">
+            <Terminal className="h-8 w-8" />
+          </div>
+          <h2 className="heading-brutalist text-2xl font-bold mono text-center uppercase tracking-widest text-[#E94B35] mb-2">
+            BROADCAST_COMPLETED
+          </h2>
+          <div className="h-[1px] bg-gradient-to-r from-transparent via-[#E94B35]/30 to-transparent w-full my-4" />
+          <p className="text-xs mono text-[#6E6E6E] uppercase tracking-wide leading-relaxed mb-6">
+            Your telemetry signal has already been successfully recorded in the centralized databases. Duplicate entries are blocked to prevent data contamination.
+          </p>
+          <div className="flex items-center justify-center gap-1.5 text-[9px] mono text-[#E94B35] uppercase font-bold bg-[#E94B35]/5 border border-[#E94B35]/20 rounded py-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E94B35] animate-ping" />
+            <span>CONNECTION_SAFE / SINGLE_TRANSMISSION_ONLY</span>
+          </div>
         </div>
       </div>
     );

@@ -10,6 +10,8 @@ export interface TRPCContext {
   getCookie: ReturnType<typeof getCookieFactory>;
   clearCookie: ReturnType<typeof clearCookieFactory>;
   userId: string | null;
+  ip: string;
+  userAgent: string;
 }
 
 export async function createContext({
@@ -71,11 +73,20 @@ export async function createContext({
     }
   }
 
+  const ip =
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+    req.socket.remoteAddress ||
+    req.ip ||
+    "127.0.0.1";
+  const userAgent = req.headers["user-agent"] || "unknown";
+
   const ctx: TRPCContext = {
     createCookie: createCookieFactory(res),
     getCookie: getCookieFactory(req),
     clearCookie: clearCookieFactory(res),
     userId,
+    ip,
+    userAgent,
   };
   return ctx;
 }

@@ -2,6 +2,7 @@ import { authedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
 import { formService, formFieldService, formSubmissionService } from "../../services/index";
 import { TRPCError } from "@trpc/server";
+import { submissionRateLimiter } from "../../utils/rate-limiter";
 import { db, eq } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { formFieldsTable } from "@repo/database/models/form-field";
@@ -340,9 +341,32 @@ export const formRouter = router({
     })
     .input(submitFormInputModel)
     .output(submitFormOutputModel)
-    .mutation(async ({ input }) => {
-      const { id } = await formSubmissionService.submitForm(input);
-      return { id };
+    .mutation(async ({ input, ctx }) => {
+      // 1. Check Rate Limiter
+      submissionRateLimiter.check(ctx.ip);
+
+      // 2. Enrich payload metadata with secure server-resolved parameters
+      const enrichedInput = {
+        ...input,
+        metadata: {
+          ...input.metadata,
+          ip: ctx.ip,
+          userAgent: ctx.userAgent,
+        },
+      };
+
+      try {
+        const { id } = await formSubmissionService.submitForm(enrichedInput);
+        return { id };
+      } catch (err: any) {
+        if (err?.message === "ALREADY_SUBMITTED") {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "You have already submitted this form.",
+          });
+        }
+        throw err;
+      }
     }),
 
   getFormSubmissions: authedProcedure
