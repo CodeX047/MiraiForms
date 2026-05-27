@@ -7,7 +7,9 @@
     "CLERK_SECRET_KEY",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
     "NEXT_PUBLIC_API_URL",
-    "SKIP_ENV_VALIDATION"
+    "SKIP_ENV_VALIDATION",
+    "FRONTEND_URL",
+    "PORT"
   ],
   "tasks": {
     "build": {
