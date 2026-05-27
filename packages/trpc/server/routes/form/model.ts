@@ -20,6 +20,7 @@ export const listFormOutputModel = z
       slug: z.string().describe("Slug of the form"),
       createdAt: z.date().nullable().describe("Creation date of the form"),
       updatedAt: z.date().nullable().describe("Updation date of the form"),
+      submissionsCount: z.number().optional().describe("Number of submissions"),
     }),
   )
   .describe("List of forms");

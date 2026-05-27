@@ -1,6 +1,7 @@
-import { db, eq, asc, and } from "@repo/database";
+import { db, eq, asc, and, count } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { formFieldsTable } from "@repo/database/models/form-field";
+import { formSubmissionTable } from "@repo/database/models/form-submission";
 import {
   type CreateFormInputType,
   ListFormByUserIdInputType,
@@ -72,9 +73,12 @@ class FormService {
         slug: formsTable.slug,
         createdAt: formsTable.createdAt,
         updatedAt: formsTable.updatedAt,
+        submissionsCount: count(formSubmissionTable.id),
       })
       .from(formsTable)
-      .where(eq(formsTable.createdBy, userId));
+      .leftJoin(formSubmissionTable, eq(formsTable.id, formSubmissionTable.formId))
+      .where(eq(formsTable.createdBy, userId))
+      .groupBy(formsTable.id);
 
     return forms;
   }

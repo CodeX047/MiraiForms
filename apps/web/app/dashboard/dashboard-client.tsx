@@ -108,14 +108,16 @@ export function DashboardClient() {
       const totalCount = forms.length;
       const publishedCount = forms.filter((f) => f.published).length;
       const rate = totalCount > 0 ? Math.round((publishedCount / totalCount) * 1000) / 10 : 0;
+      
+      const realTotalResponses = forms.reduce((acc, f) => acc + (f.submissionsCount || 0), 0);
 
       setLiveStats({
-        totalResponses: totalCount * 12,
+        totalResponses: realTotalResponses,
         completionRate: rate || 50,
         avgCompletionTime: "01:15",
         dropoffRate: 100 - (rate || 50),
-        responsesToday: publishedCount * 2,
-        responsesThisWeek: publishedCount * 8,
+        responsesToday: Math.round(realTotalResponses * 0.1), // approximation for hackathon demo
+        responsesThisWeek: Math.round(realTotalResponses * 0.4),
       });
     }
   }, [forms]);
@@ -148,7 +150,7 @@ export function DashboardClient() {
       : forms
           ?.map((f) => ({
             name: f.title,
-            responses: f.published ? 14 : 0,
+            responses: f.submissionsCount || 0,
             rate: f.published ? 75.5 : 0,
             last: f.updatedAt ? "1d ago" : "Just now",
             status: f.published ? "Active" : "Draft",
