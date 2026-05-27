@@ -99,4 +99,6 @@ To explore the application without signing up, you can use the following demo cr
 
 > **Password:** `Mirai@07$`
 
+Scalar Docs: **[https://miraiforms.onrender.com/docs](https://miraiforms.onrender.com/docs)**
+
 _(Note to judges/evaluators: If the demo credentials above do not work, please feel free to create a new account using the standard Clerk sign-up flow.)_
