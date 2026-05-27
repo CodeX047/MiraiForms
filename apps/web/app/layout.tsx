@@ -20,8 +20,26 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mirai Forms",
-  description: "Mirai Forms - Build Beautiful and Interactive Forms",
+  title: {
+    default: "Mirai Forms",
+    template: "%s | Mirai Forms",
+  },
+  description: "Mirai Forms - Build Beautiful and Interactive Forms in seconds with zero code.",
+  keywords: ["forms", "form builder", "surveys", "mirai forms", "no-code"],
+  authors: [{ name: "Mirai Team" }],
+  openGraph: {
+    title: "Mirai Forms",
+    description: "Build Beautiful and Interactive Forms in seconds with zero code.",
+    url: "https://miraiforms.com",
+    siteName: "Mirai Forms",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mirai Forms",
+    description: "Build Beautiful and Interactive Forms in seconds with zero code.",
+  },
   icons: {
     icon: "/favicon.png",
   },
