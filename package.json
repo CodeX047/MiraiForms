@@ -1,5 +1,5 @@
 {
-  "name": "learning-monorepo",
+  "name": "mirai-forms-monorepo",
   "private": true,
   "scripts": {
     "build": "turbo build",

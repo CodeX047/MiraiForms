@@ -103,6 +103,13 @@ export default function PublicFormPage() {
           isValid = false;
         }
       }
+
+      if (field.type === "NUMBER" && val && val.trim() !== "") {
+        if (isNaN(Number(val))) {
+          errors[field.id] = "Please enter a valid number.";
+          isValid = false;
+        }
+      }
     }
 
     setValidationErrors(errors);
