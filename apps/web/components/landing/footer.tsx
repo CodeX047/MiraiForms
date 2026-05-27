@@ -10,22 +10,33 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 mb-16">
           <div className="col-span-2 lg:col-span-2">
             <div className="font-mono text-xl font-bold tracking-tight mb-6 flex items-center">
-              <div className="w-6 h-6 rounded bg-primary mr-2" />
               MiraiForms
             </div>
             <p className="text-muted-foreground max-w-xs mb-8">
               The next generation of form building. Powered by AI, designed for humans.
             </p>
             <div className="flex items-center space-x-4">
-              <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link
+                href="https://x.com/vishal_codeX"
+                target="_blank"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
                 <Twitter className="w-5 h-5" />
                 <span className="sr-only">Twitter</span>
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link
+                href="https://github.com/CodeX047/MiraiForms"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                target="_blank"
+              >
                 <Github className="w-5 h-5" />
                 <span className="sr-only">GitHub</span>
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link
+                href="https://www.linkedin.com/in/vishalpatil047"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                target="_blanks"
+              >
                 <Linkedin className="w-5 h-5" />
                 <span className="sr-only">LinkedIn</span>
               </Link>

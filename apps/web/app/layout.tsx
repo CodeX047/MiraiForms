@@ -22,6 +22,9 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Mirai Forms",
   description: "Mirai Forms - Build Beautiful and Interactive Forms",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
