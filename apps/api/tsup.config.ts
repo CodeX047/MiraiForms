@@ -4,6 +4,7 @@ export default defineConfig({
   entry: ["./src/index.ts"],
   splitting: false,
   bundle: true,
+  noExternal: [/@repo\/.*/],
   outDir: "./dist",
   clean: true,
   env: { IS_SERVER_BUILD: "true" },
