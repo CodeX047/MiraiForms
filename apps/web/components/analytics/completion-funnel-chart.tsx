@@ -88,7 +88,7 @@ export const CompletionFunnelChart: React.FC<CompletionFunnelChartProps> = ({
       {/* Percentage Indicators Footer overlay */}
       {!isEmpty && !loading && (
         <div className="absolute right-6 bottom-4 flex flex-col gap-1 text-[9px] mono text-[#6E6E6E] uppercase font-bold text-right pointer-events-none select-none">
-          {data.map((stage, idx) => (
+          {data.map((stage) => (
             <div key={stage.stage} className="flex items-center justify-end gap-2">
               <span>{stage.stage}:</span>
               <span className="text-white font-extrabold">{stage.percentage}%</span>

@@ -1,4 +1,3 @@
-import { parseUserAgent } from "./telemetry-utils";
 
 export interface DateTrendPoint {
   date: string;

@@ -51,9 +51,10 @@ export function DeleteFormDialog({
       });
       onOpenChange(false);
       setConfirmText("");
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { message?: string };
       toast.error("FAILED_TO_DELETE", {
-        description: err?.message || "An unexpected error occurred.",
+        description: error?.message || "An unexpected error occurred.",
         className: "mono uppercase text-xs border border-[#E94B35] bg-[#0D0D0D] text-white rounded",
       });
     } finally {
@@ -78,7 +79,7 @@ export function DeleteFormDialog({
           </DialogTitle>
           <DialogDescription className="text-xs mono text-[#6E6E6E] text-center mt-2 uppercase tracking-wide leading-relaxed">
             This action is irreversible. All telemetry, fields, responses, and submissions associated with{" "}
-            <strong className="text-white">"{form.title}"</strong> will be permanently purged.
+            <strong className="text-white">&quot;{form.title}&quot;</strong> will be permanently purged.
           </DialogDescription>
         </DialogHeader>
 

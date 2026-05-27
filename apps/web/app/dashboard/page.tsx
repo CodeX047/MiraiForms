@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
+import Link from "next/link";
 import { CreateFormModal } from "~/components/create-form-modal";
 
 export default async function DashboardPage() {
@@ -54,7 +55,7 @@ export default async function DashboardPage() {
 
         {/* Quick Actions Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <a
+          <Link
             href="/dashboard/forms"
             className="group relative rounded border border-white/10 bg-[#0D0D0D] p-8 transition-all hover:border-[#E94B35]/40 overflow-hidden block"
           >
@@ -69,9 +70,9 @@ export default async function DashboardPage() {
             </p>
             {/* Hover glow line */}
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#E94B35] via-[#FF3B30] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/dashboard/forms"
             className="group relative rounded border border-white/10 bg-[#0D0D0D] p-8 transition-all hover:border-[#E94B35]/40 overflow-hidden block"
           >
@@ -86,9 +87,9 @@ export default async function DashboardPage() {
             </p>
             {/* Hover glow line */}
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#E94B35] via-[#FF3B30] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/dashboard/forms"
             className="group relative rounded border border-white/10 bg-[#0D0D0D] p-8 transition-all hover:border-[#E94B35]/40 overflow-hidden block"
           >
@@ -103,7 +104,7 @@ export default async function DashboardPage() {
             </p>
             {/* Hover glow line */}
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#E94B35] via-[#FF3B30] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          </a>
+          </Link>
         </div>
       </div>
     </main>

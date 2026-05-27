@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
@@ -54,7 +53,7 @@ export function CreateFormModal() {
     if (!validate()) return;
 
     try {
-      const result = await createFormAsync({
+      await createFormAsync({
         title: title.trim(),
         description: description.trim() || undefined,
       });
@@ -68,9 +67,10 @@ export function CreateFormModal() {
 
       // Navigate to the all forms page
       router.push("/dashboard/forms");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Create form error:", err);
-      const message = err?.message || "Something went wrong while creating the form.";
+      const error = err as { message?: string };
+      const message = error?.message || "Something went wrong while creating the form.";
       toast.error("Failed to create form", { description: message });
     }
   };

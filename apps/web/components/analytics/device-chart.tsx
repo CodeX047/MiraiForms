@@ -60,8 +60,9 @@ export const DeviceChart: React.FC<DeviceChartProps> = ({
             height={36}
             iconSize={8}
             iconType="circle"
-            formatter={(value, entry: any) => {
-              const count = entry?.payload?.value || 0;
+            formatter={(value, entry) => {
+              const payload = entry as { payload?: { value?: number } };
+              const count = payload?.payload?.value || 0;
               return (
                 <span className="text-[9px] mono text-[#6E6E6E] uppercase tracking-wider font-bold">
                   {value}: <span className="text-white">{count}</span>

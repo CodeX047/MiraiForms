@@ -9,15 +9,11 @@ import {
   RefreshCw,
   Download,
   Calendar,
-  Layers,
   Database,
   Clock,
   Terminal,
-  Users,
   TrendingUp,
   Gauge,
-  Monitor,
-  Compass,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,7 +21,7 @@ import { useGetFeilds, useGetFormSubmissions, useListForms } from "~/hooks/api/f
 import { Button } from "~/components/ui/button";
 import { calculateMetrics } from "~/lib/analytics/calculate-metrics";
 import { formatDuration } from "~/lib/analytics/format-duration";
-import { parseUserAgent, safePercent } from "~/lib/analytics/telemetry-utils";
+import { parseUserAgent } from "~/lib/analytics/telemetry-utils";
 import {
   getBrowserData,
   getDeviceData,
@@ -72,9 +68,7 @@ export default function FormSubmissionsPage() {
   const metrics = calculateMetrics(submissions);
   const totalSubmissions = metrics.totalCount;
 
-  const lastSubmissionDate = submissions && submissions.length > 0
-    ? new Date(submissions[0]!.createdAt)
-    : null;
+
 
   // 1. Calculate Today & Weekly signals
   let responsesToday = 0;
@@ -95,7 +89,6 @@ export default function FormSubmissionsPage() {
   // 2. Conversion & Funnel stats
   const funnelData = getFunnelData(totalSubmissions);
   const conversionRate = totalSubmissions > 0 ? funnelData[2]!.percentage : 0;
-  const dropoffRate = totalSubmissions > 0 ? 100 - conversionRate : 0;
 
   // 3. Chart data calculations
   const trendData = getResponseTrend(submissions);
@@ -143,14 +136,7 @@ export default function FormSubmissionsPage() {
     });
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+
 
   return (
     <main className="min-h-screen bg-[#080808] text-[#F5F5F5] relative overflow-hidden">

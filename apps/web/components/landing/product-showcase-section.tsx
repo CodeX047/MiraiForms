@@ -12,8 +12,6 @@ import {
   Eye,
   Check,
   GripVertical,
-  Palette,
-  Sparkles,
 } from "lucide-react";
 
 type Tab = "builder" | "responses" | "analytics";
