@@ -8,6 +8,8 @@ import { Toaster } from "~/components/ui/sonner";
 import { trpc } from "~/trpc/client";
 import { createTRPCHttpBatchClientClient } from "~/trpc/create-client";
 
+import { useAuth } from "@clerk/nextjs";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -18,9 +20,10 @@ const queryClient = new QueryClient({
 });
 
 export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { getToken } = useAuth();
   const [trpcClient] = useState(() =>
     trpc.createClient({
-      links: [createTRPCHttpBatchClientClient()],
+      links: [createTRPCHttpBatchClientClient({ getToken })],
     }),
   );
   return (
