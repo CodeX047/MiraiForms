@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  validate:
+    name: Validate Monorepo
+    runs-on: ubuntu-latest
+
+    # Set up global mock env variables to ensure db/clerk validators do not fail during build/type-check
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+      JWT_SECRET: "mirai-jwt-secret-key-12345"
+      CLERK_SECRET_KEY: "sk_test_clerksecretkey"
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_clerkpublishablekey"
+      SKIP_ENV_VALIDATION: "1"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Lint
+        run: pnpm lint
+
+      - name: Run Typecheck
+        run: pnpm check-types
+
+      - name: Run Build
+        run: pnpm build
