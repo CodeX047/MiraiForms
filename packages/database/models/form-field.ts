@@ -39,7 +39,7 @@ export const formFieldsTable = pgTable(
 
     type: fieldTypeEnum("type").notNull(),
 
-    index: numeric("index", { scale: 2 }).notNull(),
+    index: numeric("index", { scale: 6 }).notNull(),
 
     choices: jsonb("choices").$type<string[]>(),
 

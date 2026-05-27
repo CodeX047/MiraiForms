@@ -20,6 +20,28 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
   baseUrl: env.BASE_URL.concat("/api"),
 });
 
+// Manually inject security definitions for Bearer and Cookie authentication
+openApiDocument.components = {
+  ...openApiDocument.components,
+  securitySchemes: {
+    bearerAuth: {
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "JWT",
+      description: "Enter your Clerk Session Token",
+    },
+    cookieAuth: {
+      type: "apiKey",
+      in: "cookie",
+      name: "__session",
+      description: "Clerk __session cookie value",
+    },
+  },
+};
+
+// Enable testing of protected operations in Scalar interactive client
+openApiDocument.security = [{ bearerAuth: [] }, { cookieAuth: [] }];
+
 app.use(
   cors({
     origin: env.FRONTEND_URL,

@@ -28,7 +28,7 @@ class FormFieldService {
 
     const current = result[0]?.maxIndex;
     const next = current ? parseFloat(current) + 1 : 1;
-    return next.toFixed(2);
+    return next.toFixed(6);
   }
 
   public async createFeild(payload: CreateFeildInputType) {

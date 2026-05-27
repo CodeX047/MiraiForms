@@ -63,14 +63,14 @@ export default function FormBuilderPage() {
 
     if (newIndex === 0) {
       const nextIdx = parseFloat(reordered[1]!.index);
-      newFractionalIndex = (nextIdx - 1.0).toFixed(2);
+      newFractionalIndex = (nextIdx - 1.0).toFixed(6);
     } else if (newIndex === reordered.length - 1) {
       const prevIdx = parseFloat(reordered[reordered.length - 2]!.index);
-      newFractionalIndex = (prevIdx + 1.0).toFixed(2);
+      newFractionalIndex = (prevIdx + 1.0).toFixed(6);
     } else {
       const prevIdx = parseFloat(reordered[newIndex - 1]!.index);
       const nextIdx = parseFloat(reordered[newIndex + 1]!.index);
-      newFractionalIndex = ((prevIdx + nextIdx) / 2.0).toFixed(2);
+      newFractionalIndex = ((prevIdx + nextIdx) / 2.0).toFixed(6);
     }
 
     const previousFields = feilds;

@@ -1,4 +1,4 @@
-import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, uuid, index } from "drizzle-orm/pg-core";
 import { formsTable } from "./form";
 
 export interface FormSubmissionValue {
@@ -28,4 +28,8 @@ export const formSubmissionTable = pgTable("form_submissions", {
   metadata: jsonb("metadata").$type<SubmissionMetadata>(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    formIdIdx: index("form_submissions_form_id_idx").on(table.formId),
+  };
 });
