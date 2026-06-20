@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useReducer } from "react";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useUpdateFeild } from "~/hooks/api/form";
@@ -24,6 +24,31 @@ import { Field, FieldLabel, FieldDescription, FieldError } from "~/components/ui
 import { FIELD_TYPES, FeildType } from "./constants";
 import { FeildItem, FieldFormErrors } from "./types";
 
+
+type State = {
+  label: string;
+  type: FeildType;
+  description: string;
+  placeholder: string;
+  isRequired: boolean;
+  errors: FieldFormErrors;
+  choices: string[];
+  newChoice: string;
+};
+
+type Action = 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | { type: "SET_FIELD"; field: keyof State; value: any };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    default:
+      return state;
+  }
+}
+
 export function EditFeildModal({
   formId,
   feild,
@@ -35,23 +60,25 @@ export function EditFeildModal({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const [label, setLabel] = useState(feild.label);
-  const [type, setType] = useState<FeildType>(feild.type as FeildType);
-  const [description, setDescription] = useState(feild.description ?? "");
-  const [placeholder, setPlaceholder] = useState(feild.placeholder ?? "");
-  const [isRequired, setIsRequired] = useState(feild.isRequired);
-  const [errors, setErrors] = useState<FieldFormErrors>({});
-  const [choices, setChoices] = useState<string[]>(feild.choices ?? []);
-  const [newChoice, setNewChoice] = useState("");
+  const [state, dispatch] = useReducer(reducer, {
+    label: feild.label,
+    type: feild.type as FeildType,
+    description: feild.description ?? "",
+    placeholder: feild.placeholder ?? "",
+    isRequired: feild.isRequired,
+    errors: {},
+    choices: feild.choices ?? [],
+    newChoice: "",
+  });
 
   const { updateFeildAsync, status } = useUpdateFeild(formId);
   const isPending = status === "pending";
 
   const validate = (): boolean => {
     const e: FieldFormErrors = {};
-    if (!label.trim()) e.label = "Label is required.";
-    else if (label.length > 100) e.label = "Label must be 100 characters or less.";
-    setErrors(e);
+    if (!state.label.trim()) e.label = "Label is required.";
+    else if (state.label.length > 100) e.label = "Label must be 100 characters or less.";
+    dispatch({ type: "SET_FIELD", field: "errors", value: e });
     return Object.keys(e).length === 0;
   };
 
@@ -62,37 +89,27 @@ export function EditFeildModal({
     try {
       await updateFeildAsync({
         feildId: feild.id,
-        lable: label.trim() !== feild.label ? label.trim() : undefined,
-        type: type !== feild.type ? type : undefined,
-        description: description.trim() !== (feild.description ?? "") ? description.trim() || null : undefined,
-        placeholder: placeholder.trim() !== (feild.placeholder ?? "") ? placeholder.trim() || null : undefined,
-        isRequired: isRequired !== feild.isRequired ? isRequired : undefined,
-        choices: type === "SELECT" ? choices : null,
+        lable: state.label.trim() !== feild.label ? state.label.trim() : undefined,
+        type: state.type !== feild.type ? state.type : undefined,
+        description: state.description.trim() !== (feild.description ?? "") ? state.description.trim() || null : undefined,
+        placeholder: state.placeholder.trim() !== (feild.placeholder ?? "") ? state.placeholder.trim() || null : undefined,
+        isRequired: state.isRequired !== feild.isRequired ? state.isRequired : undefined,
+        choices: state.type === "SELECT" ? state.choices : null,
       });
 
       toast.success("Field updated!", {
-        description: `"${label.trim()}" has been saved.`,
+        description: `"${state.label.trim()}" has been saved.`,
       });
 
       onOpenChange(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Failed to update field", {
-        description: err?.message || "Something went wrong.",
+        description: (err as Error)?.message || "Something went wrong.",
       });
     }
   };
 
-  // Sync with prop changes when a different field is selected
-  useEffect(() => {
-    setLabel(feild.label);
-    setType(feild.type as FeildType);
-    setDescription(feild.description ?? "");
-    setPlaceholder(feild.placeholder ?? "");
-    setIsRequired(feild.isRequired);
-    setChoices(feild.choices ?? []);
-    setNewChoice("");
-    setErrors({});
-  }, [feild]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,7 +122,7 @@ export function EditFeildModal({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-2">
           {/* Label */}
-          <Field data-invalid={!!errors.label || undefined}>
+          <Field data-invalid={!!state.errors.label || undefined}>
             <FieldLabel
               htmlFor="edit-feild-label"
               className="text-white text-xs font-semibold tracking-wide uppercase mono"
@@ -116,24 +133,24 @@ export function EditFeildModal({
               id="edit-feild-label"
               maxLength={100}
               disabled={isPending}
-              value={label}
+              value={state.label}
               onChange={(e) => {
-                setLabel(e.target.value);
-                if (errors.label) setErrors({});
+                dispatch({ type: "SET_FIELD", field: "label", value: e.target.value });
+                if (state.errors.label) dispatch({ type: "SET_FIELD", field: "errors", value: {} });
               }}
               autoFocus
               className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2"
             />
             <div className="flex items-center justify-between mt-1">
-              {errors.label ? (
-                <FieldError className="text-xs text-[#FF3B30] mono">{errors.label}</FieldError>
+              {state.errors.label ? (
+                <FieldError className="text-xs text-[#FF3B30] mono">{state.errors.label}</FieldError>
               ) : (
                 <FieldDescription className="text-[10px] text-[#6E6E6E] mono">
                   Max 100 characters
                 </FieldDescription>
               )}
               <span className="text-[10px] tabular-nums text-[#6E6E6E] mono">
-                {label.length}/100
+                {state.label.length}/100
               </span>
             </div>
           </Field>
@@ -143,7 +160,7 @@ export function EditFeildModal({
             <FieldLabel className="text-white text-xs font-semibold tracking-wide uppercase mono">
               Type
             </FieldLabel>
-            <Select value={type} onValueChange={(v) => setType(v as FeildType)} disabled={isPending}>
+            <Select value={state.type} onValueChange={(v) => dispatch({ type: "SET_FIELD", field: "type", value: v as FeildType })} disabled={isPending}>
               <SelectTrigger className="bg-[#080808] border-white/10 text-white focus:border-[#E94B35]/50 rounded text-xs h-9">
                 <SelectValue />
               </SelectTrigger>
@@ -176,8 +193,8 @@ export function EditFeildModal({
             <Textarea
               rows={2}
               disabled={isPending}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={state.description}
+              onChange={(e) => dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })}
               className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2"
             />
           </Field>
@@ -190,8 +207,8 @@ export function EditFeildModal({
             </FieldLabel>
             <Input
               disabled={isPending}
-              value={placeholder}
-              onChange={(e) => setPlaceholder(e.target.value)}
+              value={state.placeholder}
+              onChange={(e) => dispatch({ type: "SET_FIELD", field: "placeholder", value: e.target.value })}
               className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2"
             />
           </Field>
@@ -200,8 +217,8 @@ export function EditFeildModal({
           <div className="flex items-center gap-3">
             <Checkbox
               id="edit-feild-required"
-              checked={isRequired}
-              onCheckedChange={(v) => setIsRequired(v === true)}
+              checked={state.isRequired}
+              onCheckedChange={(v) => dispatch({ type: "SET_FIELD", field: "isRequired", value: v === true })}
               disabled={isPending}
               className="border-white/20 data-[state=checked]:bg-[#E94B35] data-[state=checked]:border-[#E94B35]"
             />
@@ -214,7 +231,7 @@ export function EditFeildModal({
           </div>
 
           {/* Choices Builder (Only for SELECT type) */}
-          {type === "SELECT" && (
+          {state.type === "SELECT" && (
             <Field>
               <FieldLabel className="text-white text-xs font-semibold tracking-wide uppercase mono">
                 Select Options
@@ -222,15 +239,15 @@ export function EditFeildModal({
               <div className="flex gap-2">
                 <Input
                   placeholder="e.g. Option Red"
-                  value={newChoice}
-                  onChange={(e) => setNewChoice(e.target.value)}
+                  value={state.newChoice}
+                  onChange={(e) => dispatch({ type: "SET_FIELD", field: "newChoice", value: e.target.value })}
                   className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2 flex-1"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      if (newChoice.trim()) {
-                        setChoices((prev) => [...prev, newChoice.trim()]);
-                        setNewChoice("");
+                      if (state.newChoice.trim()) {
+                        dispatch({ type: "SET_FIELD", field: "choices", value: [...state.choices, state.newChoice.trim()] });
+                        dispatch({ type: "SET_FIELD", field: "newChoice", value: "" });
                       }
                     }
                   }}
@@ -238,9 +255,9 @@ export function EditFeildModal({
                 <Button
                   type="button"
                   onClick={() => {
-                    if (newChoice.trim()) {
-                      setChoices((prev) => [...prev, newChoice.trim()]);
-                      setNewChoice("");
+                    if (state.newChoice.trim()) {
+                      dispatch({ type: "SET_FIELD", field: "choices", value: [...state.choices, state.newChoice.trim()] });
+                      dispatch({ type: "SET_FIELD", field: "newChoice", value: "" });
                     }
                   }}
                   className="bg-[#0D0D0D] border border-white/10 text-white hover:bg-white/5 rounded text-xs px-3 cursor-pointer h-9"
@@ -249,10 +266,10 @@ export function EditFeildModal({
                 </Button>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
-                {choices.length === 0 ? (
+                {state.choices.length === 0 ? (
                   <span className="text-[10px] text-[#6E6E6E] mono uppercase">No options added yet.</span>
                 ) : (
-                  choices.map((choice, i) => (
+                  state.choices.map((choice, i) => (
                     <div
                       key={i}
                       className="inline-flex items-center gap-1.5 text-[10px] mono text-white bg-white/5 border border-white/10 rounded px-2.5 py-1"
@@ -260,7 +277,7 @@ export function EditFeildModal({
                       <span>{choice}</span>
                       <button
                         type="button"
-                        onClick={() => setChoices((prev) => prev.filter((_, idx) => idx !== i))}
+                        onClick={() => dispatch({ type: "SET_FIELD", field: "choices", value: state.choices.filter((_, idx) => idx !== i) })}
                         className="text-[#6E6E6E] hover:text-[#E94B35] focus:outline-none ml-1 text-xs font-bold font-mono"
                       >
                         ×

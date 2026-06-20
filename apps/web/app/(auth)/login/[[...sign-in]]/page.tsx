@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useReducer } from "react";
 import { useSignIn, useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -10,45 +10,73 @@ import { Input } from "~/components/ui/input";
 import { Field, FieldLabel } from "~/components/ui/field";
 import { toast } from "sonner";
 
+type State = {
+  email: string;
+  password: string;
+  isLoading: boolean;
+  googleLoading: boolean;
+  authError: string | null;
+};
+
+type Action =
+  | { type: "SET_FIELD"; field: "email" | "password"; value: string }
+  | { type: "SET_LOADING"; isLoading: boolean }
+  | { type: "SET_GOOGLE_LOADING"; googleLoading: boolean }
+  | { type: "SET_ERROR"; error: string | null };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value, authError: null };
+    case "SET_LOADING":
+      return { ...state, isLoading: action.isLoading, authError: null };
+    case "SET_GOOGLE_LOADING":
+      return { ...state, googleLoading: action.googleLoading, authError: null };
+    case "SET_ERROR":
+      return { ...state, authError: action.error, isLoading: false, googleLoading: false };
+    default:
+      return state;
+  }
+}
+
 export default function LoginPage() {
   const { signIn, fetchStatus } = useSignIn();
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(reducer, {
+    email: "",
+    password: "",
+    isLoading: false,
+    googleLoading: false,
+    authError: null,
+  });
 
   // If already signed in, redirect to dashboard
-  useEffect(() => {
-    if (isSignedIn) {
-      router.push("/dashboard");
-    }
-  }, [isSignedIn, router]);
+  if (isSignedIn) {
+    redirect("/dashboard");
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signIn) return;
 
-    if (!email || !password) {
-      setAuthError("Please fill in all fields.");
+    if (!state.email || !state.password) {
+      dispatch({ type: "SET_ERROR", error: "Please fill in all fields." });
       return;
     }
 
-    setIsLoading(true);
-    setAuthError(null);
+    dispatch({ type: "SET_LOADING", isLoading: true });
 
     try {
       const { error } = await signIn.password({
-        identifier: email,
-        password,
+        identifier: state.email,
+        password: state.password,
       });
 
       if (error) {
         const message = error.longMessage || error.message || "Invalid credentials.";
-        setAuthError(message);
+        dispatch({ type: "SET_ERROR", error: message });
         toast.error("Sign-in failed", {
           description: message,
         });
@@ -71,25 +99,24 @@ export default function LoginPage() {
         });
       } else {
         console.warn("Sign in status unresolved:", signIn.status);
-        setAuthError(`Authentication status unresolved: ${signIn.status}`);
+        dispatch({ type: "SET_ERROR", error: `Authentication status unresolved: ${signIn.status}` });
       }
     } catch (err: any) {
       console.error("Sign in error:", err);
       const message = err.message || "An unexpected error occurred.";
-      setAuthError(message);
+      dispatch({ type: "SET_ERROR", error: message });
       toast.error("Sign-in failed", {
         description: message,
       });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", isLoading: false });
     }
   };
 
   const handleGoogleLogin = async () => {
     if (!signIn) return;
 
-    setGoogleLoading(true);
-    setAuthError(null);
+    dispatch({ type: "SET_GOOGLE_LOADING", googleLoading: true });
 
     try {
       const { error } = await signIn.sso({
@@ -100,24 +127,22 @@ export default function LoginPage() {
 
       if (error) {
         const message = error.longMessage || error.message || "Google sign-in initiation failed.";
-        setAuthError(message);
+        dispatch({ type: "SET_ERROR", error: message });
         toast.error("Google sign-in failed", {
           description: message,
         });
-        setGoogleLoading(false);
       }
     } catch (err: any) {
       console.error("Google authentication trigger error:", err);
       const message = err.message || "Could not initiate Google login.";
-      setAuthError(message);
+      dispatch({ type: "SET_ERROR", error: message });
       toast.error("Google sign-in failed", {
         description: message,
       });
-      setGoogleLoading(false);
     }
   };
 
-  const isFormLoading = isLoading || googleLoading || fetchStatus === "fetching";
+  const isFormLoading = state.isLoading || state.googleLoading || fetchStatus === "fetching";
 
   return (
     <div className="dark min-h-screen w-full bg-[#080808] flex items-center justify-center p-6 md:p-10 text-[#F5F5F5] overflow-hidden relative">
@@ -178,7 +203,7 @@ export default function LoginPage() {
               onClick={handleGoogleLogin}
               className="w-full h-11 bg-[#080808] border-white/10 hover:bg-[#0D0D0D] hover:border-[#E94B35]/50 text-[#F5F5F5] flex items-center justify-center gap-3 transition-all duration-300 rounded font-medium shadow-xs hover:shadow-[0_0_20px_rgba(233,75,53,0.1)] active:scale-[0.99] cursor-pointer text-xs mono uppercase tracking-wider"
             >
-              {googleLoading ? (
+              {state.googleLoading ? (
                 <div className="h-4 w-4 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
               ) : (
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -214,7 +239,7 @@ export default function LoginPage() {
             </div>
 
             {/* Custom Error Banner */}
-            {authError && (
+            {state.authError && (
               <div className="p-3.5 rounded border border-red-500/20 bg-red-500/5 text-red-400 text-xs flex items-start gap-2.5 animate-in fade-in zoom-in-95 duration-200 mono">
                 <svg
                   className="h-4 w-4 shrink-0 text-red-400/90 mt-0.5"
@@ -229,7 +254,7 @@ export default function LoginPage() {
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                   />
                 </svg>
-                <span>{authError}</span>
+                <span>{state.authError}</span>
               </div>
             )}
 
@@ -243,8 +268,8 @@ export default function LoginPage() {
                   type="email"
                   placeholder="name@example.com"
                   disabled={isFormLoading}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={state.email}
+                  onChange={(e) => dispatch({ type: "SET_FIELD", field: "email", value: e.target.value })}
                   className="bg-[#080808] border-white/10 focus:border-[#E94B35]/50 focus:ring-transparent text-[#F5F5F5] placeholder-[#6E6E6E] rounded h-11 transition-all duration-300 px-3.5 text-xs"
                 />
               </Field>
@@ -259,8 +284,8 @@ export default function LoginPage() {
                   type="password"
                   placeholder="••••••••"
                   disabled={isFormLoading}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={state.password}
+                  onChange={(e) => dispatch({ type: "SET_FIELD", field: "password", value: e.target.value })}
                   className="bg-[#080808] border-white/10 focus:border-[#E94B35]/50 focus:ring-transparent text-[#F5F5F5] placeholder-[#6E6E6E] rounded h-11 transition-all duration-300 px-3.5 text-xs"
                 />
               </Field>
@@ -271,7 +296,7 @@ export default function LoginPage() {
                 disabled={isFormLoading}
                 className="w-full h-11 mt-2 bg-[#E94B35] text-white font-bold hover:bg-[#FF3B30] shadow-[0_0_25px_rgba(233,75,53,0.2)] active:scale-[0.98] duration-200 rounded flex items-center justify-center gap-2 border-0 cursor-pointer text-xs uppercase mono tracking-widest"
               >
-                {isLoading ? (
+                {state.isLoading ? (
                   <>
                     <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Connecting...

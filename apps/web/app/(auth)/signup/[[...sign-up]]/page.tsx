@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useReducer } from "react";
 import { useSignUp, useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -10,53 +10,89 @@ import { Input } from "~/components/ui/input";
 import { Field, FieldLabel } from "~/components/ui/field";
 import { toast } from "sonner";
 
+type State = {
+  email: string;
+  password: string;
+  code: string;
+  isLoading: boolean;
+  googleLoading: boolean;
+  verifying: boolean;
+  authError: string | null;
+};
+
+type Action =
+  | { type: "SET_FIELD"; field: "email" | "password" | "code"; value: string }
+  | { type: "SET_LOADING"; isLoading: boolean }
+  | { type: "SET_GOOGLE_LOADING"; googleLoading: boolean }
+  | { type: "SET_VERIFYING"; verifying: boolean }
+  | { type: "SET_ERROR"; error: string | null }
+  | { type: "RESET" };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value, authError: null };
+    case "SET_LOADING":
+      return { ...state, isLoading: action.isLoading, authError: null };
+    case "SET_GOOGLE_LOADING":
+      return { ...state, googleLoading: action.googleLoading, authError: null };
+    case "SET_VERIFYING":
+      return { ...state, verifying: action.verifying, authError: null };
+    case "SET_ERROR":
+      return { ...state, authError: action.error, isLoading: false, googleLoading: false };
+    case "RESET":
+      return { ...state, verifying: false, authError: null, code: "" };
+    default:
+      return state;
+  }
+}
+
 export default function SignupPage() {
   const { signUp, fetchStatus } = useSignUp();
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(reducer, {
+    email: "",
+    password: "",
+    code: "",
+    isLoading: false,
+    googleLoading: false,
+    verifying: false,
+    authError: null,
+  });
 
   // If already signed in, redirect to dashboard
-  useEffect(() => {
-    if (isSignedIn) {
-      router.push("/dashboard");
-    }
-  }, [isSignedIn, router]);
+  if (isSignedIn) {
+    redirect("/dashboard");
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signUp) return;
 
-    if (!email || !password) {
-      setAuthError("Please fill in all fields.");
+    if (!state.email || !state.password) {
+      dispatch({ type: "SET_ERROR", error: "Please fill in all fields." });
       return;
     }
 
-    if (password.length < 8) {
-      setAuthError("Password must be at least 8 characters long.");
+    if (state.password.length < 8) {
+      dispatch({ type: "SET_ERROR", error: "Password must be at least 8 characters long." });
       return;
     }
 
-    setIsLoading(true);
-    setAuthError(null);
+    dispatch({ type: "SET_LOADING", isLoading: true });
 
     try {
       // 1. Create signup attempt with email and password
       const { error: signUpError } = await signUp.password({
-        emailAddress: email,
-        password,
+        emailAddress: state.email,
+        password: state.password,
       });
 
       if (signUpError) {
         const message = signUpError.longMessage || signUpError.message || "Signup failed.";
-        setAuthError(message);
+        dispatch({ type: "SET_ERROR", error: message });
         toast.error("Signup failed", {
           description: message,
         });
@@ -68,7 +104,7 @@ export default function SignupPage() {
 
       if (sendCodeError) {
         const message = sendCodeError.longMessage || sendCodeError.message || "Verification code failed to send.";
-        setAuthError(message);
+        dispatch({ type: "SET_ERROR", error: message });
         toast.error("Verification code error", {
           description: message,
         });
@@ -76,19 +112,19 @@ export default function SignupPage() {
       }
 
       // 3. Set verified stage to true to show the OTP screen
-      setVerifying(true);
+      dispatch({ type: "SET_VERIFYING", verifying: true });
       toast.success("Verification code sent!", {
         description: "Check your email inbox for a 6-digit code.",
       });
     } catch (err: any) {
       console.error("Sign up creation error:", err);
       const message = err.message || "An unexpected error occurred.";
-      setAuthError(message);
+      dispatch({ type: "SET_ERROR", error: message });
       toast.error("Signup failed", {
         description: message,
       });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", isLoading: false });
     }
   };
 
@@ -96,23 +132,22 @@ export default function SignupPage() {
     e.preventDefault();
     if (!signUp) return;
 
-    if (!code) {
-      setAuthError("Please enter the verification code.");
+    if (!state.code) {
+      dispatch({ type: "SET_ERROR", error: "Please enter the verification code." });
       return;
     }
 
-    setIsLoading(true);
-    setAuthError(null);
+    dispatch({ type: "SET_LOADING", isLoading: true });
 
     try {
       // 3. Attempt email address verification with entered OTP code
       const { error: verifyError } = await signUp.verifications.verifyEmailCode({
-        code,
+        code: state.code,
       });
 
       if (verifyError) {
         const message = verifyError.longMessage || verifyError.message || "Verification failed.";
-        setAuthError(message);
+        dispatch({ type: "SET_ERROR", error: message });
         toast.error("Verification failed", {
           description: message,
         });
@@ -135,17 +170,17 @@ export default function SignupPage() {
         });
       } else {
         console.warn("Sign up status unresolved after verification:", signUp.status);
-        setAuthError(`Verification complete but status is: ${signUp.status}`);
+        dispatch({ type: "SET_ERROR", error: `Verification complete but status is: ${signUp.status}` });
       }
     } catch (err: any) {
       console.error("Verification code error:", err);
       const message = err.message || "An unexpected error occurred.";
-      setAuthError(message);
+      dispatch({ type: "SET_ERROR", error: message });
       toast.error("Verification failed", {
         description: message,
       });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", isLoading: false });
     }
   };
 
@@ -156,7 +191,7 @@ export default function SignupPage() {
       const { error } = await signUp.verifications.sendEmailCode();
       if (error) {
         const message = error.longMessage || error.message || "Could not resend code.";
-        setAuthError(message);
+        dispatch({ type: "SET_ERROR", error: message });
         toast.error("Resend failed", {
           description: message,
         });
@@ -165,11 +200,11 @@ export default function SignupPage() {
       toast.success("New code sent!", {
         description: "Check your email again for a new 6-digit code.",
       });
-      setAuthError(null);
+      dispatch({ type: "SET_ERROR", error: null });
     } catch (err: any) {
       console.error("Resend verification code error:", err);
       const message = err.message || "Could not resend code. Please try again.";
-      setAuthError(message);
+      dispatch({ type: "SET_ERROR", error: message });
       toast.error("Resend failed", {
         description: message,
       });
@@ -179,8 +214,7 @@ export default function SignupPage() {
   const handleGoogleSignup = async () => {
     if (!signUp) return;
 
-    setGoogleLoading(true);
-    setAuthError(null);
+    dispatch({ type: "SET_GOOGLE_LOADING", googleLoading: true });
 
     try {
       const { error } = await signUp.sso({
@@ -191,32 +225,28 @@ export default function SignupPage() {
 
       if (error) {
         const message = error.longMessage || error.message || "Google signup initiation failed.";
-        setAuthError(message);
+        dispatch({ type: "SET_ERROR", error: message });
         toast.error("Google signup failed", {
           description: message,
         });
-        setGoogleLoading(false);
       }
     } catch (err: any) {
       console.error("Google authentication trigger error:", err);
       const message = err.message || "Could not initiate Google signup.";
-      setAuthError(message);
+      dispatch({ type: "SET_ERROR", error: message });
       toast.error("Google signup failed", {
         description: message,
       });
-      setGoogleLoading(false);
     }
   };
 
   const handleStartOver = () => {
     if (!signUp) return;
     signUp.reset();
-    setVerifying(false);
-    setAuthError(null);
-    setCode("");
+    dispatch({ type: "RESET" });
   };
 
-  const isFormLoading = isLoading || googleLoading || fetchStatus === "fetching";
+  const isFormLoading = state.isLoading || state.googleLoading || fetchStatus === "fetching";
 
   return (
     <div className="dark min-h-screen w-full bg-[#080808] flex items-center justify-center p-6 md:p-10 text-[#F5F5F5] overflow-hidden relative">
@@ -262,7 +292,7 @@ export default function SignupPage() {
           <CardContent className="p-8 flex flex-col gap-6">
             
             {/* Custom Error Banner */}
-            {authError && (
+            {state.authError && (
               <div className="p-3.5 rounded border border-red-500/20 bg-red-500/5 text-red-400 text-xs flex items-start gap-2.5 animate-in fade-in zoom-in-95 duration-200 mono">
                 <svg
                   className="h-4 w-4 shrink-0 text-red-400/90 mt-0.5"
@@ -277,11 +307,11 @@ export default function SignupPage() {
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                   />
                 </svg>
-                <span>{authError}</span>
+                <span>{state.authError}</span>
               </div>
             )}
 
-            {!verifying ? (
+            {!state.verifying ? (
               /* ================== SIGN UP FORM SCREEN ================== */
               <>
                 <div className="flex flex-col gap-1.5 text-center sm:text-left">
@@ -293,7 +323,6 @@ export default function SignupPage() {
                   </p>
                 </div>
 
-                {/* Google OAuth Signup Button */}
                 <Button
                   type="button"
                   variant="outline"
@@ -301,7 +330,7 @@ export default function SignupPage() {
                   onClick={handleGoogleSignup}
                   className="w-full h-11 bg-[#080808] border-white/10 hover:bg-[#0D0D0D] hover:border-[#E94B35]/50 text-[#F5F5F5] flex items-center justify-center gap-3 transition-all duration-300 rounded font-medium shadow-xs hover:shadow-[0_0_20px_rgba(233,75,53,0.1)] active:scale-[0.99] cursor-pointer text-xs mono uppercase tracking-wider"
                 >
-                  {googleLoading ? (
+                  {state.googleLoading ? (
                     <div className="h-4 w-4 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
                   ) : (
                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -346,8 +375,8 @@ export default function SignupPage() {
                       type="email"
                       placeholder="name@example.com"
                       disabled={isFormLoading}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={state.email}
+                      onChange={(e) => dispatch({ type: "SET_FIELD", field: "email", value: e.target.value })}
                       className="bg-[#080808] border-white/10 focus:border-[#E94B35]/50 focus:ring-transparent text-[#F5F5F5] placeholder-[#6E6E6E] rounded h-11 transition-all duration-300 px-3.5 text-xs"
                     />
                   </Field>
@@ -360,8 +389,8 @@ export default function SignupPage() {
                       type="password"
                       placeholder="•••••••• (Min 8 chars)"
                       disabled={isFormLoading}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={state.password}
+                      onChange={(e) => dispatch({ type: "SET_FIELD", field: "password", value: e.target.value })}
                       className="bg-[#080808] border-white/10 focus:border-[#E94B35]/50 focus:ring-transparent text-[#F5F5F5] placeholder-[#6E6E6E] rounded h-11 transition-all duration-300 px-3.5 text-xs"
                     />
                   </Field>
@@ -372,7 +401,7 @@ export default function SignupPage() {
                     disabled={isFormLoading}
                     className="w-full h-11 mt-2 bg-[#E94B35] text-white font-bold hover:bg-[#FF3B30] shadow-[0_0_25px_rgba(233,75,53,0.2)] active:scale-[0.98] duration-200 rounded flex items-center justify-center gap-2 border-0 cursor-pointer text-xs uppercase mono tracking-widest"
                   >
-                    {isLoading ? (
+                    {state.isLoading ? (
                       <>
                         <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Creating...
@@ -421,7 +450,7 @@ export default function SignupPage() {
                     Verify email
                   </h2>
                   <p className="text-xs text-[#6E6E6E] leading-normal px-2 mono">
-                    Code sent to <span className="text-white font-bold">{email}</span>.
+                    Code sent to <span className="text-white font-bold">{state.email}</span>.
                   </p>
                 </div>
 
@@ -434,9 +463,9 @@ export default function SignupPage() {
                       type="text"
                       maxLength={6}
                       placeholder="000000"
-                      disabled={isLoading}
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
+                      disabled={state.isLoading}
+                      value={state.code}
+                      onChange={(e) => dispatch({ type: "SET_FIELD", field: "code", value: e.target.value.replace(/[^0-9]/g, "") })}
                       className="bg-[#080808] border-white/10 focus:border-[#E94B35]/50 text-white placeholder-slate-800 rounded h-12 transition-all duration-300 text-center text-xl font-mono tracking-[0.4em] pl-4 focus:ring-transparent focus:ring-offset-transparent"
                     />
                   </Field>
@@ -445,7 +474,7 @@ export default function SignupPage() {
                   <div className="flex justify-between items-center px-1 text-[10px] mono">
                     <button
                       type="button"
-                      disabled={isLoading}
+                      disabled={state.isLoading}
                       onClick={handleResendCode}
                       className="text-[#E94B35] font-semibold hover:text-[#FF3B30] transition-all cursor-pointer"
                     >
@@ -453,7 +482,7 @@ export default function SignupPage() {
                     </button>
                     <button
                       type="button"
-                      disabled={isLoading}
+                      disabled={state.isLoading}
                       onClick={handleStartOver}
                       className="text-[#6E6E6E] hover:text-[#F5F5F5] transition-all cursor-pointer"
                     >
@@ -463,10 +492,10 @@ export default function SignupPage() {
 
                   <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={state.isLoading}
                     className="w-full h-11 mt-2 bg-[#E94B35] text-white font-bold hover:bg-[#FF3B30] shadow-[0_0_25px_rgba(233,75,53,0.2)] active:scale-[0.98] duration-200 rounded flex items-center justify-center gap-2 border-0 cursor-pointer text-xs uppercase mono tracking-widest"
                   >
-                    {isLoading ? (
+                    {state.isLoading ? (
                       <>
                         <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Verifying...
