@@ -15,7 +15,7 @@ export function Footer() {
             <p className="text-muted-foreground max-w-xs mb-8">
               The next generation of form building. Powered by AI, designed for humans.
             </p>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-x-4">
               <Link
                 href="https://x.com/vishal_codeX"
                 target="_blank"
@@ -93,8 +93,8 @@ export function Footer() {
         </div>
 
         <div className="border-t border-border/40 pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} MiraiForms Inc. All rights reserved.</p>
-          <div className="flex items-center space-x-4 mt-4 md:mt-0 font-mono text-xs opacity-50">
+          <p suppressHydrationWarning>© {new Date().getFullYear()} MiraiForms Inc. All rights reserved.</p>
+          <div className="flex items-center gap-x-4 mt-4 md:mt-0 font-mono text-xs opacity-50">
             <span>SYS/OK</span>
             <span>v0.1.0</span>
           </div>

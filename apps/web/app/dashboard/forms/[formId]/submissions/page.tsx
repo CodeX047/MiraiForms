@@ -53,14 +53,9 @@ export default function FormSubmissionsPage() {
   const { feilds, isLoading: loadingFields, error: errorFields } = useGetFeilds(formId);
   const { submissions, isLoading: loadingSubmissions, error: errorSubmissions } = useGetFormSubmissions(formId);
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const formDetails = forms?.find((f) => f.id === formId);
 
-  const isLoading = !mounted || loadingFields || loadingSubmissions;
+  const isLoading = loadingFields || loadingSubmissions;
   const isError = errorFields || errorSubmissions;
 
   // Aggregate Stats using production-grade utilities
@@ -133,7 +128,7 @@ export default function FormSubmissionsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" suppressHydrationWarning>
       {/* Breadcrumb + Header */}
       <div className="mb-2">
         <Link

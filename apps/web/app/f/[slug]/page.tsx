@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useReducer, useRef, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   CheckCircle,
@@ -31,83 +31,100 @@ type ResponsesState = Record<string, string>;
 
 const LOADING_TIMEOUT_MS = 15_000;
 
+type State = {
+  hasTimedOut: boolean;
+  responses: ResponsesState;
+  validationErrors: Record<string, string>;
+  isSubmitted: boolean;
+};
+
+type Action =
+  | { type: "TIMEOUT" }
+  | { type: "RETRY" }
+  | { type: "SET_FIELD"; fieldId: string; value: string }
+  | { type: "SET_ERRORS"; errors: Record<string, string> }
+  | { type: "SUBMIT_SUCCESS" };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "TIMEOUT":
+      return { ...state, hasTimedOut: true };
+    case "RETRY":
+      return { ...state, hasTimedOut: false };
+    case "SET_FIELD": {
+      const newErrors = { ...state.validationErrors };
+      delete newErrors[action.fieldId];
+      return {
+        ...state,
+        responses: { ...state.responses, [action.fieldId]: action.value },
+        validationErrors: newErrors,
+      };
+    }
+    case "SET_ERRORS":
+      return { ...state, validationErrors: action.errors };
+    case "SUBMIT_SUCCESS":
+      return { ...state, isSubmitted: true };
+    default:
+      return state;
+  }
+}
+
 export default function PublicFormPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#080808] flex items-center justify-center relative overflow-hidden">
+        <RefreshCw className="h-6 w-6 animate-spin text-[#E94B35]" />
+      </div>
+    }>
+      <PublicFormContent />
+    </Suspense>
+  );
+}
+
+function PublicFormContent() {
   const { slug } = useParams() as { slug: string };
   const searchParams = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const { form, isLoading, error, status } = useGetPublicForm(slug, isPreview, mounted);
+  const { form, isLoading, error, status } = useGetPublicForm(slug, isPreview, true);
   const { submitFormAsync, status: submitStatus } = useSubmitForm();
   const utils = trpc.useUtils();
 
-  // --- Timeout detection ---
-  const [hasTimedOut, setHasTimedOut] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const [state, dispatch] = useReducer(reducer, {
+    hasTimedOut: false,
+    responses: {},
+    validationErrors: {},
+    isSubmitted: false,
+  });
+
+  const startTime = useRef<number>(Date.now());
+  const retryCount = useRef(0);
 
   useEffect(() => {
-    if (!mounted || !isLoading) {
-      setHasTimedOut(false);
+    if (!isLoading) {
+      if (state.hasTimedOut) dispatch({ type: "RETRY" });
       return;
     }
-
     const timer = setTimeout(() => {
-      setHasTimedOut(true);
+      dispatch({ type: "TIMEOUT" });
     }, LOADING_TIMEOUT_MS);
-
     return () => clearTimeout(timer);
-  }, [mounted, isLoading, retryCount]);
+  }, [isLoading, state.hasTimedOut]);
 
   const handleRetry = useCallback(() => {
-    setHasTimedOut(false);
-    setRetryCount((c) => c + 1);
+    dispatch({ type: "RETRY" });
+    retryCount.current += 1;
     void utils.form.getPublicForm.invalidate({ slug, preview: isPreview });
   }, [utils, slug, isPreview]);
 
-  const [responses, setResponses] = useState<ResponsesState>({});
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [startTime] = useState<number>(() => Date.now());
-  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
-
-  useEffect(() => {
-    if (form?.id) {
-      const submitted = localStorage.getItem(`submitted_${form.id}`);
-      if (submitted === "true") {
-        setAlreadySubmitted(true);
-      }
-    }
-  }, [form?.id]);
+  const alreadySubmitted = typeof window !== "undefined" && form?.id 
+    ? localStorage.getItem(`submitted_${form.id}`) === "true" 
+    : false;
 
   const isSubmitting = submitStatus === "pending";
 
-  useEffect(() => {
-    if (form && form.fields) {
-      const initial: ResponsesState = {};
-      form.fields.forEach((f) => {
-        if (f.type === "YES_NO") {
-          initial[f.id] = "false";
-        } else {
-          initial[f.id] = "";
-        }
-      });
-      setResponses(initial);
-    }
-  }, [form]);
-
   const handleChange = (fieldId: string, value: string) => {
-    setResponses((prev) => ({ ...prev, [fieldId]: value }));
-    if (validationErrors[fieldId]) {
-      setValidationErrors((prev) => {
-        const next = { ...prev };
-        delete next[fieldId];
-        return next;
-      });
-    }
+    dispatch({ type: "SET_FIELD", fieldId, value });
   };
 
   const validateForm = () => {
@@ -117,7 +134,7 @@ export default function PublicFormPage() {
     if (!form || !form.fields) return false;
 
     for (const field of form.fields) {
-      const val = responses[field.id];
+      const val = state.responses[field.id] ?? (field.type === "YES_NO" ? "false" : "");
       if (field.isRequired) {
         if (!val || val.trim() === "") {
           errors[field.id] = "This field is required.";
@@ -140,7 +157,7 @@ export default function PublicFormPage() {
       }
     }
 
-    setValidationErrors(errors);
+    dispatch({ type: "SET_ERRORS", errors });
     return isValid;
   };
 
@@ -153,7 +170,7 @@ export default function PublicFormPage() {
     }
 
     if (isPreview) {
-      setIsSubmitted(true);
+      dispatch({ type: "SUBMIT_SUCCESS" });
       toast.success("SIMULATED_TRANSMISSION_SUCCESS", {
         description: "Preview submission successful (data not saved).",
         className: "mono uppercase text-xs border border-[#22c55e] bg-[#0D0D0D] text-white rounded",
@@ -161,9 +178,9 @@ export default function PublicFormPage() {
       return;
     }
 
-    const responsePayload = Object.entries(responses).map(([formFieldId, value]) => ({
-      formFieldId,
-      value,
+    const responsePayload = form.fields.map(field => ({
+      formFieldId: field.id,
+      value: state.responses[field.id] ?? (field.type === "YES_NO" ? "false" : ""),
     }));
 
     try {
@@ -172,11 +189,11 @@ export default function PublicFormPage() {
         responses: responsePayload,
         metadata: {
           userAgent: window.navigator.userAgent,
-          completionTime: Math.round((Date.now() - startTime) / 1000),
+          completionTime: Math.round((Date.now() - startTime.current) / 1000),
         },
       });
 
-      setIsSubmitted(true);
+      dispatch({ type: "SUBMIT_SUCCESS" });
       if (form?.id) {
         localStorage.setItem(`submitted_${form.id}`, "true");
       }
@@ -189,7 +206,7 @@ export default function PublicFormPage() {
   };
 
   // --- Loading / Timeout / Error guard ---
-  if (!mounted || (isLoading && !hasTimedOut && !error)) {
+  if (isLoading && !state.hasTimedOut && !error) {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
@@ -204,8 +221,8 @@ export default function PublicFormPage() {
   }
 
   // Timeout or error during loading — show recovery UI
-  if ((hasTimedOut && isLoading) || (status === "error" && !form)) {
-    const isTimeout = hasTimedOut && isLoading;
+  if ((state.hasTimedOut && isLoading) || (status === "error" && !form)) {
+    const isTimeout = state.hasTimedOut && isLoading;
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6 relative overflow-hidden selection:bg-[#E94B35] selection:text-white">
         <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
@@ -297,7 +314,7 @@ export default function PublicFormPage() {
     );
   }
 
-  if (isSubmitted) {
+  if (state.isSubmitted) {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6 relative overflow-hidden selection:bg-[#E94B35] selection:text-white">
         <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
@@ -322,7 +339,7 @@ export default function PublicFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20">
+    <div className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20" suppressHydrationWarning>
       <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0 fixed" />
       <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0 fixed" />
 
@@ -365,8 +382,8 @@ export default function PublicFormPage() {
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-6">
               {form.fields.map((field, idx) => {
-                const val = responses[field.id] ?? (field.type === "YES_NO" ? "false" : "");
-                const errorMsg = validationErrors[field.id];
+                const val = state.responses[field.id] ?? (field.type === "YES_NO" ? "false" : "");
+                const errorMsg = state.validationErrors[field.id];
 
                 return (
                   <div

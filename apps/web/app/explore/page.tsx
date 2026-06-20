@@ -23,11 +23,6 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
 export default function ExplorePage() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const { forms, isLoading, error } = useListPublicForms();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"FORMS" | "TEMPLATES">("FORMS");
@@ -122,7 +117,7 @@ export default function ExplorePage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20">
+    <div className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20" suppressHydrationWarning>
       {/* Visual cyber-brutalist backgrounds */}
       <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
       <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0" />
@@ -220,7 +215,7 @@ export default function ExplorePage() {
         </div>
 
         {/* Grid Display */}
-        {!mounted || isLoading ? (
+        {isLoading ? (
           <div className="p-16 flex flex-col items-center justify-center gap-4 text-[#6E6E6E]">
             <RefreshCw className="h-6 w-6 animate-spin text-[#E94B35]" />
             <span className="mono text-xs uppercase tracking-widest">LOADING_TELEMETRY_FEED...</span>

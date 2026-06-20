@@ -30,24 +30,14 @@ import { CompletionDistributionChart } from "~/components/analytics/completion-d
 
 export default function AnalyticsPage() {
   const { forms, isLoading: formsLoading } = useListForms();
-  const [selectedFormId, setSelectedFormId] = useState<string>("");
+  const [userSelectedFormId, setUserSelectedFormId] = useState<string>("");
 
-  // Auto-select first form on load
-  useEffect(() => {
-    if (forms && forms.length > 0 && !selectedFormId) {
-      setSelectedFormId(forms[0]!.id);
-    }
-  }, [forms, selectedFormId]);
+  const selectedFormId = userSelectedFormId || (forms?.[0]?.id ?? "");
 
   const { submissions, isLoading: loadingSubmissions } = useGetFormSubmissions(selectedFormId || "__none__");
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const selectedForm = forms?.find((f) => f.id === selectedFormId);
-  const isLoading = !mounted || formsLoading || loadingSubmissions;
+  const isLoading = formsLoading || loadingSubmissions;
 
   // Aggregate Stats
   const metrics = calculateMetrics(submissions);
@@ -76,7 +66,7 @@ export default function AnalyticsPage() {
   const timeDistData = getTimeDistribution(submissions);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" suppressHydrationWarning>
       {/* Header with Form Selector */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/5 pb-4">
         <div>
@@ -93,7 +83,7 @@ export default function AnalyticsPage() {
           <div className="relative">
             <select
               value={selectedFormId}
-              onChange={(e) => setSelectedFormId(e.target.value)}
+              onChange={(e) => setUserSelectedFormId(e.target.value)}
               className="appearance-none bg-[#0D0D0D] border border-white/10 hover:border-[#E94B35]/40 text-white rounded px-4 py-2 pr-8 text-xs font-bold mono uppercase tracking-wider cursor-pointer transition-all focus:border-[#E94B35]/50 focus:outline-none min-w-[200px]"
             >
               {formsLoading ? (
