@@ -1,6 +1,10 @@
-"use client";
-
 import { AuthenticateWithRedirectCallback } from "@clerk/nextjs";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Authenticating | MiraiForms",
+  description: "Completing your authentication to MiraiForms.",
+};
 
 export default function SSOCallbackPage() {
   return (

@@ -13,6 +13,11 @@ import {
   Footer,
 } from "~/components/landing";
 
+export const metadata = {
+  title: "MiraiForms | The Modern Form Builder",
+  description: "Build, share, and analyze beautiful forms in minutes with MiraiForms.",
+};
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
