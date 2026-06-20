@@ -242,6 +242,7 @@ export default function FormBuilderPage() {
 
       {editFeild && (
         <EditFeildModal
+          key={editFeild.id}
           formId={formId}
           feild={editFeild}
           open={!!editFeild}
