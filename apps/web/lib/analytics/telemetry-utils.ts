@@ -41,7 +41,7 @@ export function parseUserAgent(uaStr: string | null | undefined): { browser: str
 }
 
 // Safely calculate percentage to avoid NaN / Infinity
-export function safePercent(numerator: number, denominator: number): number {
+function safePercent(numerator: number, denominator: number): number {
   if (!denominator || denominator === 0) return 0;
   return Math.round((numerator / denominator) * 100);
 }

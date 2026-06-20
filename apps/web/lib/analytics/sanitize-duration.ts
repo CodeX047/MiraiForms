@@ -1,4 +1,4 @@
-export const MAX_REASONABLE_DURATION_SECONDS = 24 * 60 * 60;
+const MAX_REASONABLE_DURATION_SECONDS = 24 * 60 * 60;
 
 export function sanitizeDuration(rawTime: unknown): number | null {
   if (rawTime === null || rawTime === undefined) return null;
