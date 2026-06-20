@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   Compass,
@@ -31,26 +31,32 @@ export default function ExplorePage() {
   const templates = [
     {
       name: "Anime Fan Survey",
-      description: "Gather detailed information about anime watch preferences, genres, and character ratings.",
+      description:
+        "Gather detailed information about anime watch preferences, genres, and character ratings.",
       category: "Entertainment",
       icon: Heart,
       uses: "2.4k uses",
       fields: [
-        { label: "Favorite Genre", type: "SELECT", choices: ["Shonen", "Seinen", "Slice of Life", "Isekai"] },
+        {
+          label: "Favorite Genre",
+          type: "SELECT",
+          choices: ["Shonen", "Seinen", "Slice of Life", "Isekai"],
+        },
         { label: "Rate last series watched", type: "NUMBER" },
-        { label: "Additional Feedback", type: "TEXT" }
+        { label: "Additional Feedback", type: "TEXT" },
       ],
     },
     {
       name: "Gaming Tournament",
-      description: "Standard team signup form for e-sports events, leagues, and casual bracket registration.",
+      description:
+        "Standard team signup form for e-sports events, leagues, and casual bracket registration.",
       category: "Events",
       icon: Gamepad2,
       uses: "1.8k uses",
       fields: [
         { label: "Team Name", type: "TEXT" },
         { label: "Discord Handle", type: "TEXT" },
-        { label: "Skill Division", type: "SELECT", choices: ["Beginner", "Intermediate", "Pro"] }
+        { label: "Skill Division", type: "SELECT", choices: ["Beginner", "Intermediate", "Pro"] },
       ],
     },
     {
@@ -62,19 +68,20 @@ export default function ExplorePage() {
       fields: [
         { label: "Portfolio Link", type: "TEXT" },
         { label: "Secure Email", type: "EMAIL" },
-        { label: "Years of Experience", type: "NUMBER" }
+        { label: "Years of Experience", type: "NUMBER" },
       ],
     },
     {
       name: "Event RSVP",
-      description: "Fast RSVP confirmation checklist for tech meetups, hacker camps, and grid meetups.",
+      description:
+        "Fast RSVP confirmation checklist for tech meetups, hacker camps, and grid meetups.",
       category: "Events",
       icon: Calendar,
       uses: "4.1k uses",
       fields: [
         { label: "Attending?", type: "YES_NO" },
         { label: "Secure Email", type: "EMAIL" },
-        { label: "Dietary Restrictions", type: "TEXT" }
+        { label: "Dietary Restrictions", type: "TEXT" },
       ],
     },
     {
@@ -84,8 +91,12 @@ export default function ExplorePage() {
       icon: MessageSquare,
       uses: "2.9k uses",
       fields: [
-        { label: "How did you hear about us?", type: "SELECT", choices: ["Twitter/X", "Github", "Friend", "Other"] },
-        { label: "Improvement ideas", type: "TEXT" }
+        {
+          label: "How did you hear about us?",
+          type: "SELECT",
+          choices: ["Twitter/X", "Github", "Friend", "Other"],
+        },
+        { label: "Improvement ideas", type: "TEXT" },
       ],
     },
     {
@@ -96,7 +107,11 @@ export default function ExplorePage() {
       uses: "1.5k uses",
       fields: [
         { label: "Submission Title", type: "TEXT" },
-        { label: "Project Category", type: "SELECT", choices: ["Frontend", "Fullstack", "Hardware", "Design"] }
+        {
+          label: "Project Category",
+          type: "SELECT",
+          choices: ["Frontend", "Fullstack", "Hardware", "Design"],
+        },
       ],
     },
   ];
@@ -106,18 +121,21 @@ export default function ExplorePage() {
     forms?.filter(
       (form) =>
         form.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (form.description && form.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        (form.description && form.description.toLowerCase().includes(searchTerm.toLowerCase())),
     ) || [];
 
   const filteredTemplates = templates.filter(
     (temp) =>
       temp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       temp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      temp.category.toLowerCase().includes(searchTerm.toLowerCase())
+      temp.category.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
-    <div className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20" suppressHydrationWarning>
+    <div
+      className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20"
+      suppressHydrationWarning
+    >
       {/* Visual cyber-brutalist backgrounds */}
       <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
       <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0" />
@@ -130,9 +148,12 @@ export default function ExplorePage() {
               Mirai<span className="text-[#E94B35]">Forms</span>
             </span>
           </Link>
-          
+
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-xs font-semibold uppercase mono border border-white/10 hover:border-[#E94B35]/40 hover:bg-white/5 text-white gap-1 rounded transition-all px-4 py-2 cursor-pointer">
+            <Link
+              href="/dashboard"
+              className="text-xs font-semibold uppercase mono border border-white/10 hover:border-[#E94B35]/40 hover:bg-white/5 text-white gap-1 rounded transition-all px-4 py-2 cursor-pointer"
+            >
               Go to Dashboard
             </Link>
           </div>
@@ -140,7 +161,6 @@ export default function ExplorePage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-12 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
         {/* Breadcrumb back */}
         <Link
           href="/"
@@ -218,11 +238,15 @@ export default function ExplorePage() {
         {isLoading ? (
           <div className="p-16 flex flex-col items-center justify-center gap-4 text-[#6E6E6E]">
             <RefreshCw className="h-6 w-6 animate-spin text-[#E94B35]" />
-            <span className="mono text-xs uppercase tracking-widest">LOADING_TELEMETRY_FEED...</span>
+            <span className="mono text-xs uppercase tracking-widest">
+              LOADING_TELEMETRY_FEED...
+            </span>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center p-16 text-center border border-white/10 bg-[#0D0D0D] rounded">
-            <div className="mb-4 rounded bg-red-500/10 p-4 text-red-400 border border-red-500/20">⚠️</div>
+            <div className="mb-4 rounded bg-red-500/10 p-4 text-red-400 border border-red-500/20">
+              ⚠️
+            </div>
             <h3 className="text-sm font-bold text-white mono">Failed to fetch public forms</h3>
             <p className="mt-1 text-xs text-[#6E6E6E] mono">{error.message}</p>
           </div>
@@ -243,7 +267,8 @@ export default function ExplorePage() {
                       <Compass className="h-8 w-8 text-[#6E6E6E] mb-3" />
                       <h4 className="text-sm font-bold text-white mono">No public forms found</h4>
                       <p className="text-xs text-[#6E6E6E] max-w-sm mt-2 mono">
-                        There are currently no public published forms matching your filter. Use the dashboard to publish yours!
+                        There are currently no public published forms matching your filter. Use the
+                        dashboard to publish yours!
                       </p>
                     </div>
                   ) : (
@@ -279,7 +304,7 @@ export default function ExplorePage() {
                           <span className="text-[9px] mono text-[#6E6E6E]">
                             SLUG: /f/{form.slug}
                           </span>
-                          
+
                           <Link href={`/f/${form.slug}`} target="_blank">
                             <Button
                               size="sm"
@@ -293,7 +318,7 @@ export default function ExplorePage() {
                         </div>
 
                         {/* Interactive neon accent bottom line */}
-                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#E94B35] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-[#E94B35] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     ))
                   )}
@@ -355,10 +380,8 @@ export default function ExplorePage() {
                           </div>
 
                           <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
-                            <span className="text-[9px] mono text-[#6E6E6E]">
-                              {template.uses}
-                            </span>
-                            
+                            <span className="text-[9px] mono text-[#6E6E6E]">{template.uses}</span>
+
                             <Link href="/dashboard/forms">
                               <Button
                                 size="sm"
@@ -372,7 +395,7 @@ export default function ExplorePage() {
                           </div>
 
                           {/* Interactive neon accent bottom line */}
-                          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#E94B35] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-[#E94B35] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       );
                     })

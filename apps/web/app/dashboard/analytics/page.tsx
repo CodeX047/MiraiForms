@@ -1,14 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  Database,
-  Clock,
-  TrendingUp,
-  Gauge,
-  Calendar,
-  ChevronDown,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Database, Clock, TrendingUp, Gauge, Calendar, ChevronDown } from "lucide-react";
 
 import { useGetFormSubmissions, useListForms } from "~/hooks/api/form";
 import { calculateMetrics } from "~/lib/analytics/calculate-metrics";
@@ -34,7 +27,9 @@ export default function AnalyticsPage() {
 
   const selectedFormId = userSelectedFormId || (forms?.[0]?.id ?? "");
 
-  const { submissions, isLoading: loadingSubmissions } = useGetFormSubmissions(selectedFormId || "__none__");
+  const { submissions, isLoading: loadingSubmissions } = useGetFormSubmissions(
+    selectedFormId || "__none__",
+  );
 
   const selectedForm = forms?.find((f) => f.id === selectedFormId);
   const isLoading = formsLoading || loadingSubmissions;
@@ -106,9 +101,7 @@ export default function AnalyticsPage() {
       {/* Active Form Signal */}
       {selectedForm && (
         <div className="flex items-center gap-2">
-          <span className="text-[10px] mono text-[#E94B35] uppercase font-bold">
-            ACTIVE_FEED:
-          </span>
+          <span className="text-[10px] mono text-[#E94B35] uppercase font-bold">ACTIVE_FEED:</span>
           <span className="text-xs mono text-white font-bold">{selectedForm.title}</span>
           <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase mono px-2 py-0.5 rounded bg-[#00FF99]/10 border border-[#00FF99]/20 text-[#00FF99]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#00FF99] animate-pulse" />
@@ -139,7 +132,9 @@ export default function AnalyticsPage() {
         />
         <AnalyticsCard
           title="Avg Pace"
-          value={isLoading ? "--" : metrics.average !== null ? formatDuration(metrics.average) : "0s"}
+          value={
+            isLoading ? "--" : metrics.average !== null ? formatDuration(metrics.average) : "0s"
+          }
           unit=""
           icon={<Clock className="h-4 w-4" />}
           description="Mean submission time"

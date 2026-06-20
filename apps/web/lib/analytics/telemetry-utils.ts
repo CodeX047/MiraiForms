@@ -1,9 +1,13 @@
 // Helper function to simplify user-agent parsing
-export function parseUserAgent(uaStr: string | null | undefined): { browser: string; os: string; device: string } {
+export function parseUserAgent(uaStr: string | null | undefined): {
+  browser: string;
+  os: string;
+  device: string;
+} {
   if (!uaStr) {
     return { browser: "Unknown", os: "Unknown", device: "Desktop" };
   }
-  
+
   const ua = uaStr.toLowerCase();
   let browser = "Unknown";
   let os = "Unknown";
@@ -38,10 +42,4 @@ export function parseUserAgent(uaStr: string | null | undefined): { browser: str
   }
 
   return { browser, os, device };
-}
-
-// Safely calculate percentage to avoid NaN / Infinity
-function safePercent(numerator: number, denominator: number): number {
-  if (!denominator || denominator === 0) return 0;
-  return Math.round((numerator / denominator) * 100);
 }

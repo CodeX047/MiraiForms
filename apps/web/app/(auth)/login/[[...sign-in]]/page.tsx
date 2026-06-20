@@ -158,7 +158,7 @@ export default function LoginPage() {
         
         {/* Logo / Header */}
         <div className="flex flex-col items-center text-center gap-2 mb-2">
-          <div className="flex items-center justify-center h-12 w-12 rounded bg-[#0D0D0D] border border-white/10 p-[1px] shadow-[0_0_20px_rgba(233,75,53,0.15)]">
+          <div className="flex items-center justify-center h-12 w-12 rounded bg-[#0D0D0D] border border-white/10 p-px shadow-[0_0_20px_rgba(233,75,53,0.15)]">
             <div className="flex items-center justify-center h-full w-full rounded bg-slate-950">
               <svg
                 className="h-6 w-6 text-[#E94B35]"

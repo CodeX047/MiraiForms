@@ -24,7 +24,6 @@ import { Field, FieldLabel, FieldDescription, FieldError } from "~/components/ui
 import { FIELD_TYPES, FeildType } from "./constants";
 import { FieldFormErrors } from "./types";
 
-
 type State = {
   label: string;
   type: FeildType;
@@ -36,10 +35,7 @@ type State = {
   newChoice: string;
 };
 
-type Action = 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  | { type: "SET_FIELD"; field: keyof State; value: any }
-  | { type: "RESET" };
+type Action = { type: "SET_FIELD"; field: keyof State; value: any } | { type: "RESET" };
 
 const initialState: State = {
   label: "",
@@ -155,7 +151,9 @@ export function CreateFeildModal({
             />
             <div className="flex items-center justify-between mt-1">
               {state.errors.label ? (
-                <FieldError className="text-xs text-[#FF3B30] mono">{state.errors.label}</FieldError>
+                <FieldError className="text-xs text-[#FF3B30] mono">
+                  {state.errors.label}
+                </FieldError>
               ) : (
                 <FieldDescription className="text-[10px] text-[#6E6E6E] mono">
                   Max 100 characters
@@ -172,7 +170,13 @@ export function CreateFeildModal({
             <FieldLabel className="text-white text-xs font-semibold tracking-wide uppercase mono">
               Type
             </FieldLabel>
-            <Select value={state.type} onValueChange={(v) => dispatch({ type: "SET_FIELD", field: "type", value: v as FeildType })} disabled={isPending}>
+            <Select
+              value={state.type}
+              onValueChange={(v) =>
+                dispatch({ type: "SET_FIELD", field: "type", value: v as FeildType })
+              }
+              disabled={isPending}
+            >
               <SelectTrigger className="bg-[#080808] border-white/10 text-white focus:border-[#E94B35]/50 rounded text-xs h-9">
                 <SelectValue />
               </SelectTrigger>
@@ -207,7 +211,9 @@ export function CreateFeildModal({
               rows={2}
               disabled={isPending}
               value={state.description}
-              onChange={(e) => dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })}
+              onChange={(e) =>
+                dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })
+              }
               className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2"
             />
           </Field>
@@ -222,7 +228,9 @@ export function CreateFeildModal({
               placeholder="e.g. Enter your name"
               disabled={isPending}
               value={state.placeholder}
-              onChange={(e) => dispatch({ type: "SET_FIELD", field: "placeholder", value: e.target.value })}
+              onChange={(e) =>
+                dispatch({ type: "SET_FIELD", field: "placeholder", value: e.target.value })
+              }
               className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2"
             />
           </Field>
@@ -232,7 +240,9 @@ export function CreateFeildModal({
             <Checkbox
               id="feild-required"
               checked={state.isRequired}
-              onCheckedChange={(v) => dispatch({ type: "SET_FIELD", field: "isRequired", value: v === true })}
+              onCheckedChange={(v) =>
+                dispatch({ type: "SET_FIELD", field: "isRequired", value: v === true })
+              }
               disabled={isPending}
               className="border-white/20 data-[state=checked]:bg-[#E94B35] data-[state=checked]:border-[#E94B35]"
             />
@@ -254,13 +264,19 @@ export function CreateFeildModal({
                 <Input
                   placeholder="e.g. Option Red"
                   value={state.newChoice}
-                  onChange={(e) => dispatch({ type: "SET_FIELD", field: "newChoice", value: e.target.value })}
+                  onChange={(e) =>
+                    dispatch({ type: "SET_FIELD", field: "newChoice", value: e.target.value })
+                  }
                   className="bg-[#080808] border-white/10 text-white placeholder-[#6E6E6E] focus:border-[#E94B35]/50 rounded text-xs px-3 py-2 flex-1"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
                       if (state.newChoice.trim()) {
-                        dispatch({ type: "SET_FIELD", field: "choices", value: [...state.choices, state.newChoice.trim()] });
+                        dispatch({
+                          type: "SET_FIELD",
+                          field: "choices",
+                          value: [...state.choices, state.newChoice.trim()],
+                        });
                         dispatch({ type: "SET_FIELD", field: "newChoice", value: "" });
                       }
                     }
@@ -270,7 +286,11 @@ export function CreateFeildModal({
                   type="button"
                   onClick={() => {
                     if (state.newChoice.trim()) {
-                      dispatch({ type: "SET_FIELD", field: "choices", value: [...state.choices, state.newChoice.trim()] });
+                      dispatch({
+                        type: "SET_FIELD",
+                        field: "choices",
+                        value: [...state.choices, state.newChoice.trim()],
+                      });
                       dispatch({ type: "SET_FIELD", field: "newChoice", value: "" });
                     }
                   }}
@@ -281,7 +301,9 @@ export function CreateFeildModal({
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {state.choices.length === 0 ? (
-                  <span className="text-[10px] text-[#6E6E6E] mono uppercase">No options added yet.</span>
+                  <span className="text-[10px] text-[#6E6E6E] mono uppercase">
+                    No options added yet.
+                  </span>
                 ) : (
                   state.choices.map((choice, i) => (
                     <div
@@ -291,7 +313,13 @@ export function CreateFeildModal({
                       <span>{choice}</span>
                       <button
                         type="button"
-                        onClick={() => dispatch({ type: "SET_FIELD", field: "choices", value: state.choices.filter((_, idx) => idx !== i) })}
+                        onClick={() =>
+                          dispatch({
+                            type: "SET_FIELD",
+                            field: "choices",
+                            value: state.choices.filter((_, idx) => idx !== i),
+                          })
+                        }
                         className="text-[#6E6E6E] hover:text-[#E94B35] focus:outline-none ml-1 text-xs font-bold font-mono"
                       >
                         ×

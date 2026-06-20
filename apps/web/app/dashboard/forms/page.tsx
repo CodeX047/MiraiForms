@@ -60,7 +60,9 @@ export default function FormsPage() {
     try {
       await togglePublishAsync({ formId, published: !currentStatus });
       toast.success(`Form is now ${!currentStatus ? "PUBLISHED" : "OFFLINE"}`, {
-        description: !currentStatus ? "Public submissions are now active." : "Public submissions are disabled.",
+        description: !currentStatus
+          ? "Public submissions are now active."
+          : "Public submissions are disabled.",
         className: "mono uppercase text-xs border border-[#E94B35] bg-[#0D0D0D] text-white rounded",
       });
     } catch (err: unknown) {
@@ -79,9 +81,10 @@ export default function FormsPage() {
     try {
       await updateVisibilityAsync({ formId, visibility: newVisibility });
       toast.success(`Form is now ${newVisibility}`, {
-        description: newVisibility === "PUBLIC"
-          ? "Form can be displayed in galleries and explore pages."
-          : "Form is hidden from galleries. Direct link only.",
+        description:
+          newVisibility === "PUBLIC"
+            ? "Form can be displayed in galleries and explore pages."
+            : "Form is hidden from galleries. Direct link only.",
         className: "mono uppercase text-xs border border-[#E94B35] bg-[#0D0D0D] text-white rounded",
       });
     } catch (err: unknown) {
@@ -152,8 +155,8 @@ export default function FormsPage() {
                     <div className="h-4 bg-white/5 rounded animate-pulse" />
                     <div className="h-3 bg-white/5 rounded animate-pulse w-2/3" />
                   </div>
-                  <div className="h-4 bg-white/5 rounded animate-pulse w-[80px]" />
-                  <div className="h-4 bg-white/5 rounded animate-pulse w-[80px]" />
+                  <div className="h-4 bg-white/5 rounded animate-pulse w-20" />
+                  <div className="h-4 bg-white/5 rounded animate-pulse w-20" />
                   <div className="h-8 bg-white/5 rounded animate-pulse w-[100px]" />
                 </div>
               ))}
@@ -288,11 +291,20 @@ export default function FormsPage() {
                             <select
                               value={form.visibility}
                               disabled={updatingVisibilityId === form.id}
-                              onChange={(e) => handleUpdateVisibility(form.id, e.target.value as "PUBLIC" | "UNLISTED")}
+                              onChange={(e) =>
+                                handleUpdateVisibility(
+                                  form.id,
+                                  e.target.value as "PUBLIC" | "UNLISTED",
+                                )
+                              }
                               className="bg-[#0D0D0D] border border-white/10 hover:border-white/20 focus:border-[#E94B35]/50 text-white rounded text-[9px] mono px-1.5 py-0.5 outline-none transition-all cursor-pointer"
                             >
-                              <option value="PUBLIC" className="bg-[#0D0D0D] text-white">PUBLIC</option>
-                              <option value="UNLISTED" className="bg-[#0D0D0D] text-white">UNLISTED</option>
+                              <option value="PUBLIC" className="bg-[#0D0D0D] text-white">
+                                PUBLIC
+                              </option>
+                              <option value="UNLISTED" className="bg-[#0D0D0D] text-white">
+                                UNLISTED
+                              </option>
                             </select>
                             {updatingVisibilityId === form.id && (
                               <RefreshCw className="h-2.5 w-2.5 animate-spin text-[#E94B35]" />

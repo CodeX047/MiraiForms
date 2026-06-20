@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useReducer, useRef, Suspense } from "react";
+import React, { useEffect, useCallback, useReducer, useRef, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   CheckCircle,
@@ -71,11 +71,13 @@ function reducer(state: State, action: Action): State {
 
 export default function PublicFormPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center relative overflow-hidden">
-        <RefreshCw className="h-6 w-6 animate-spin text-[#E94B35]" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#080808] flex items-center justify-center relative overflow-hidden">
+          <RefreshCw className="h-6 w-6 animate-spin text-[#E94B35]" />
+        </div>
+      }
+    >
       <PublicFormContent />
     </Suspense>
   );
@@ -117,9 +119,10 @@ function PublicFormContent() {
     void utils.form.getPublicForm.invalidate({ slug, preview: isPreview });
   }, [utils, slug, isPreview]);
 
-  const alreadySubmitted = typeof window !== "undefined" && form?.id 
-    ? localStorage.getItem(`submitted_${form.id}`) === "true" 
-    : false;
+  const alreadySubmitted =
+    typeof window !== "undefined" && form?.id
+      ? localStorage.getItem(`submitted_${form.id}`) === "true"
+      : false;
 
   const isSubmitting = submitStatus === "pending";
 
@@ -178,7 +181,7 @@ function PublicFormContent() {
       return;
     }
 
-    const responsePayload = form.fields.map(field => ({
+    const responsePayload = form.fields.map((field) => ({
       formFieldId: field.id,
       value: state.responses[field.id] ?? (field.type === "YES_NO" ? "false" : ""),
     }));
@@ -240,7 +243,7 @@ function PublicFormContent() {
               ? "Unable to establish form connection. The server may be waking up from idle."
               : "Failed to load the form. Please check your connection and try again."}
           </p>
-          <div className="h-[1px] bg-white/10 w-full mb-6" />
+          <div className="h-px bg-white/10 w-full mb-6" />
           <Button
             onClick={handleRetry}
             className="bg-[#E94B35] text-white hover:bg-[#FF3B30] transition-all text-xs uppercase font-bold mono rounded cursor-pointer h-10 px-6 shadow-[0_0_20px_rgba(233,75,53,0.15)] hover:shadow-[0_0_30px_rgba(233,75,53,0.3)] flex items-center gap-2 mx-auto"
@@ -250,7 +253,9 @@ function PublicFormContent() {
           </Button>
           <div className="flex items-center justify-center gap-1.5 mt-6">
             <span className="text-[10px] mono text-[#6E6E6E]/60 uppercase">SIGNAL:</span>
-            <span className="text-[10px] mono text-[#E94B35] font-bold uppercase animate-ping mr-1">●</span>
+            <span className="text-[10px] mono text-[#E94B35] font-bold uppercase animate-ping mr-1">
+              ●
+            </span>
             <span className="text-[10px] mono text-[#E94B35] font-bold uppercase">NO_SIGNAL</span>
           </div>
         </div>
@@ -264,7 +269,7 @@ function PublicFormContent() {
         {/* Subtle scanline and grid background overlay */}
         <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0" />
         <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0" />
-        
+
         <div className="relative z-10 w-full max-w-md border border-[#E94B35]/30 bg-[#0D0D0D] p-8 text-center rounded shadow-[0_0_50px_rgba(233,75,53,0.15)] select-none">
           <div className="mx-auto mb-6 rounded bg-[#E94B35]/10 p-4 text-[#E94B35] border border-[#E94B35]/20 w-fit animate-pulse">
             <Terminal className="h-8 w-8" />
@@ -272,9 +277,10 @@ function PublicFormContent() {
           <h2 className="heading-brutalist text-2xl font-bold mono text-center uppercase tracking-widest text-[#E94B35] mb-2">
             BROADCAST_COMPLETED
           </h2>
-          <div className="h-[1px] bg-gradient-to-r from-transparent via-[#E94B35]/30 to-transparent w-full my-4" />
+          <div className="h-px bg-linear-to-r from-transparent via-[#E94B35]/30 to-transparent w-full my-4" />
           <p className="text-xs mono text-[#6E6E6E] uppercase tracking-wide leading-relaxed mb-6">
-            Your telemetry signal has already been successfully recorded in the centralized databases. Duplicate entries are blocked to prevent data contamination.
+            Your telemetry signal has already been successfully recorded in the centralized
+            databases. Duplicate entries are blocked to prevent data contamination.
           </p>
           <div className="flex items-center justify-center gap-1.5 text-[9px] mono text-[#E94B35] uppercase font-bold bg-[#E94B35]/5 border border-[#E94B35]/20 rounded py-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E94B35] animate-ping" />
@@ -303,10 +309,12 @@ function PublicFormContent() {
           <p className="text-xs text-[#6E6E6E] mono uppercase tracking-wider mb-6">
             This transmission is currently offline.
           </p>
-          <div className="h-[1px] bg-white/10 w-full mb-6" />
+          <div className="h-px bg-white/10 w-full mb-6" />
           <div className="flex items-center justify-center gap-1.5">
             <span className="text-[10px] mono text-[#6E6E6E]/60 uppercase">SIGNAL:</span>
-            <span className="text-[10px] mono text-[#E94B35] font-bold uppercase animate-ping mr-1">●</span>
+            <span className="text-[10px] mono text-[#E94B35] font-bold uppercase animate-ping mr-1">
+              ●
+            </span>
             <span className="text-[10px] mono text-[#E94B35] font-bold uppercase">NO_SIGNAL</span>
           </div>
         </div>
@@ -325,10 +333,13 @@ function PublicFormContent() {
           </div>
           <h1 className="heading-brutalist text-4xl text-white mb-4">TRANSMISSION_COMPLETE</h1>
           <p className="text-xs text-[#6E6E6E] mono max-w-sm mx-auto uppercase">
-            Your response for <strong className="text-white">"{form.title}"</strong> has been successfully broadcasted.
+            Your response for <strong className="text-white">"{form.title}"</strong> has been
+            successfully broadcasted.
           </p>
           <div className="mt-12 flex items-center justify-center gap-2 opacity-50">
-            <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest">Powered by</span>
+            <span className="text-[10px] mono text-[#6E6E6E] uppercase tracking-widest">
+              Powered by
+            </span>
             <span className="text-[10px] font-bold tracking-widest uppercase mono text-white">
               Mirai<span className="text-[#E94B35]">Forms</span>
             </span>
@@ -339,9 +350,12 @@ function PublicFormContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20" suppressHydrationWarning>
-      <div className="absolute inset-0 opacity-5 pointer-events-none grid-lines z-0 fixed" />
-      <div className="absolute inset-0 opacity-3 pointer-events-none scanlines z-0 fixed" />
+    <div
+      className="min-h-screen bg-[#080808] relative overflow-hidden selection:bg-[#E94B35] selection:text-white pb-20"
+      suppressHydrationWarning
+    >
+      <div className="fixed inset-0 opacity-5 pointer-events-none grid-lines z-0" />
+      <div className=" inset-0 opacity-3 pointer-events-none scanlines z-0 fixed" />
 
       {isPreview && (
         <div className="bg-[#E94B35] text-white py-2 px-4 text-center text-xs font-bold uppercase tracking-widest mono sticky top-0 z-50 flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(233,75,53,0.3)] border-b border-[#FF3B30]">
@@ -351,7 +365,9 @@ function PublicFormContent() {
       )}
 
       {/* Header */}
-      <header className={`sticky ${isPreview ? "top-8" : "top-0"} z-40 border-b border-white/10 bg-[#080808]/80 backdrop-blur-md transition-all`}>
+      <header
+        className={`sticky ${isPreview ? "top-8" : "top-0"} z-40 border-b border-white/10 bg-[#080808]/80 backdrop-blur-md transition-all`}
+      >
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold tracking-widest uppercase mono text-white">
@@ -376,7 +392,9 @@ function PublicFormContent() {
         {!form.fields || form.fields.length === 0 ? (
           <div className="rounded border border-white/10 bg-[#0D0D0D] p-8 text-center shadow-2xl">
             <Info className="h-6 w-6 text-[#6E6E6E] mx-auto mb-3" />
-            <p className="text-xs text-[#6E6E6E] mono">This form currently has no fields to fill out.</p>
+            <p className="text-xs text-[#6E6E6E] mono">
+              This form currently has no fields to fill out.
+            </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -394,7 +412,9 @@ function PublicFormContent() {
                       <FieldLabel className="text-white text-sm font-semibold tracking-wide uppercase mono flex items-center gap-2">
                         <span className="text-[#E94B35]">{String(idx + 1).padStart(2, "0")}.</span>
                         {field.label}
-                        {field.isRequired && <span className="text-[#E94B35] text-lg leading-none">*</span>}
+                        {field.isRequired && (
+                          <span className="text-[#E94B35] text-lg leading-none">*</span>
+                        )}
                       </FieldLabel>
 
                       {field.description && (
@@ -405,7 +425,10 @@ function PublicFormContent() {
 
                       <div className="mt-3">
                         {/* TEXT / EMAIL / NUMBER / PASSWORD */}
-                        {(field.type === "TEXT" || field.type === "EMAIL" || field.type === "NUMBER" || field.type === "PASSWORD") && (
+                        {(field.type === "TEXT" ||
+                          field.type === "EMAIL" ||
+                          field.type === "NUMBER" ||
+                          field.type === "PASSWORD") && (
                           <Input
                             type={field.type.toLowerCase()}
                             placeholder={field.placeholder || "Your answer..."}
@@ -424,7 +447,9 @@ function PublicFormContent() {
                             disabled={isSubmitting}
                           >
                             <SelectTrigger className="bg-[#080808] border-white/10 text-white focus:border-[#E94B35]/50 rounded text-sm h-12 mono">
-                              <SelectValue placeholder={field.placeholder || "Select an option..."} />
+                              <SelectValue
+                                placeholder={field.placeholder || "Select an option..."}
+                              />
                             </SelectTrigger>
                             <SelectContent className="bg-[#0D0D0D] border-white/10">
                               {field.choices && field.choices.length > 0 ? (
@@ -439,9 +464,24 @@ function PublicFormContent() {
                                 ))
                               ) : (
                                 <>
-                                  <SelectItem value="Option A" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option A</SelectItem>
-                                  <SelectItem value="Option B" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option B</SelectItem>
-                                  <SelectItem value="Option C" className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono">Option C</SelectItem>
+                                  <SelectItem
+                                    value="Option A"
+                                    className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono"
+                                  >
+                                    Option A
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="Option B"
+                                    className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono"
+                                  >
+                                    Option B
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="Option C"
+                                    className="text-white text-xs hover:bg-white/5 focus:bg-white/5 cursor-pointer mono"
+                                  >
+                                    Option C
+                                  </SelectItem>
                                 </>
                               )}
                             </SelectContent>

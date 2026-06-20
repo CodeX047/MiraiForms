@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -51,7 +51,11 @@ export default function FormSubmissionsPage() {
 
   const { forms } = useListForms();
   const { feilds, isLoading: loadingFields, error: errorFields } = useGetFeilds(formId);
-  const { submissions, isLoading: loadingSubmissions, error: errorSubmissions } = useGetFormSubmissions(formId);
+  const {
+    submissions,
+    isLoading: loadingSubmissions,
+    error: errorSubmissions,
+  } = useGetFormSubmissions(formId);
 
   const formDetails = forms?.find((f) => f.id === formId);
 
@@ -182,7 +186,9 @@ export default function FormSubmissionsPage() {
         />
         <AnalyticsCard
           title="Avg Pace"
-          value={isLoading ? "--" : metrics.average !== null ? formatDuration(metrics.average) : "0s"}
+          value={
+            isLoading ? "--" : metrics.average !== null ? formatDuration(metrics.average) : "0s"
+          }
           unit=""
           icon={<Clock className="h-4 w-4" />}
           description="Mean submission time"
